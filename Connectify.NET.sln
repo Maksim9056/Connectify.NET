@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Connectify.NET", "Connectif
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Connectify.NET.Client", "Connectify.NET.Client\Connectify.NET.Client.csproj", "{5ADC1977-E633-4EDF-833A-A23434736422}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "APIConnectify.NET", "..\APIConnectify.NET\APIConnectify.NET.csproj", "{64CF06C3-84CB-4E96-AFBB-17865CFB2FC8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "APIConnectify.NET", "..APIConnectify.NET\APIConnectify.NET.csproj", "{64CF06C3-84CB-4E96-AFBB-17865CFB2FC8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
