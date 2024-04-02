@@ -7,7 +7,7 @@ namespace APIConnectify.NET.Data
 
     public class DB:DbContext
     {
-        public DB():base()
+        public DB()
         {
             Database.EnsureCreated();
         }
