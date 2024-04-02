@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34723.18
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Connectify.NET", "Connectify.NET\Connectify.NET.csproj", "{DEEA5D2A-7B9B-4D6D-BF05-83D43EDB5A06}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Connectify.NET", "Connectify.NET\Connectify.NET.csproj", "{DEEA5D2A-7B9B-4D6D-BF05-83D43EDB5A06}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Connectify.NET.Client", "Connectify.NET.Client\Connectify.NET.Client.csproj", "{5ADC1977-E633-4EDF-833A-A23434736422}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Connectify.NET.Client", "Connectify.NET.Client\Connectify.NET.Client.csproj", "{5ADC1977-E633-4EDF-833A-A23434736422}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "APIConnectify.NET", "..APIConnectify.NET\APIConnectify.NET.csproj", "{64CF06C3-84CB-4E96-AFBB-17865CFB2FC8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "APIConnectify.NET", "APIConnectify.NET\APIConnectify.NET.csproj", "{8B2476A1-19E0-4344-A37A-76AE245B0EFB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,10 +23,10 @@ Global
 		{5ADC1977-E633-4EDF-833A-A23434736422}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5ADC1977-E633-4EDF-833A-A23434736422}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5ADC1977-E633-4EDF-833A-A23434736422}.Release|Any CPU.Build.0 = Release|Any CPU
-		{64CF06C3-84CB-4E96-AFBB-17865CFB2FC8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{64CF06C3-84CB-4E96-AFBB-17865CFB2FC8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{64CF06C3-84CB-4E96-AFBB-17865CFB2FC8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{64CF06C3-84CB-4E96-AFBB-17865CFB2FC8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B2476A1-19E0-4344-A37A-76AE245B0EFB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B2476A1-19E0-4344-A37A-76AE245B0EFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B2476A1-19E0-4344-A37A-76AE245B0EFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B2476A1-19E0-4344-A37A-76AE245B0EFB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
