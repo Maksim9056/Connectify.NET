@@ -7,7 +7,7 @@ namespace APIConnectify.NET.Models
     public class Users
     {
         public int Id { get; set; }
-        [Required]
+        
 
         public string Username { get; set; }
 
@@ -16,11 +16,11 @@ namespace APIConnectify.NET.Models
         public string Surname { get; set; }
         public string Phone { get; set; }
         public Files Picture { get; set; }
-        public List<int> Group { get; set; } = new List<int>();
-        [Required]
+        public List<Group> Group { get; set; } = new List<Group>();
+        //[Required]
 
         public List<Friends> Friends { get; set; } = new List<Friends>();
-        public Users(int id, string username, string password, string email, string surname, string phone, Files picture, List<int> group, List<Friends> friends)
+        public Users(int id, string username, string password, string email, string surname, string phone, Files picture, List<Group> group, List<Friends> friends)
         {
             Id = id;
             Username = username;

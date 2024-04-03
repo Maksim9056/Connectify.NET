@@ -9,17 +9,17 @@ namespace APIConnectify.NET.Models
         [Key]
 
         public int Id { get; set; }
-        [Required]
-        public Users  Friend { get; set; }
+        //[Required]
+        public Users FriendId { get; set; }
 
         public Friends()
         {
 
         }
-        public Friends(int id, Users friend)
+        public Friends(int id, Users friendId)
         {
             Id = id;
-            Friend = friend;
+            FriendId = friendId;
         }
      
     }

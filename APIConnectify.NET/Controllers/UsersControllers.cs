@@ -15,18 +15,22 @@ namespace APIConnectify.NET.Controllers
         }
 
         // GET: BookModels
-        // GET: api/Answers/GET
+        // GET: api/Users/GET
         [HttpGet("GET")]
-        public async Task<ActionResult<IEnumerable<APIConnectify.NET.Models.Users>>> GetAnswer()
+        public async Task<ActionResult<IEnumerable<APIConnectify.NET.Models.Users>>> GetUsers()
         {
-            return await _context.User.ToListAsync();
+            return await _context.Users
+                .Include(u => u.Group) // Assuming Group is a direct navigation property
+                .Include(u => u.Friends)
+                .Include(u => u.Picture)
+                .ToListAsync();
         }
 
-        // GET: api/Answers/5
+        // GET: api/Users/5
         [HttpGet("GETId/{id}")]
-        public async Task<ActionResult<APIConnectify.NET.Models.Users>> GetAnswer(int id)
+        public async Task<ActionResult<APIConnectify.NET.Models.Users>> GetUsers(int id)
         {
-            var answer = await _context.User.FindAsync(id);
+            var answer = await _context.Users.Include(u => u.Group).Include(u => u.Friends).Include(u => u.Picture).FirstOrDefaultAsync(u=>u.Id ==id);
 
             if (answer == null)
             {
@@ -36,10 +40,10 @@ namespace APIConnectify.NET.Controllers
             return answer;
         }
 
-        // PUT: api/Answers/5
+        // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("PUTId/{id}")]
-        public async Task<IActionResult> PutAnswer(int id, APIConnectify.NET.Models.Users answer)
+        public async Task<IActionResult> PutUsers(int id, APIConnectify.NET.Models.Users answer)
         {
             if (id != answer.Id)
             {
@@ -54,7 +58,7 @@ namespace APIConnectify.NET.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!AnswerExists(id))
+                if (!UsersExists(id))
                 {
                     return NotFound();
                 }
@@ -67,12 +71,12 @@ namespace APIConnectify.NET.Controllers
             return NoContent();
         }
 
-        // POST: api/Answers
+        // POST: api/Users
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost("POST")]
-        public async Task<ActionResult<APIConnectify.NET.Models.Users>> PostAnswer(APIConnectify.NET.Models.Users answer)
+        public async Task<ActionResult<APIConnectify.NET.Models.Users>> PostUsers(APIConnectify.NET.Models.Users answer)
         {
-            _context.User.Add(answer);
+            _context.Users.Add(answer);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetAnswer", new { id = answer.Id }, answer);
@@ -80,23 +84,23 @@ namespace APIConnectify.NET.Controllers
 
         // DELETE: api/Users/5
         [HttpDelete("DELETE/{id}")]
-        public async Task<IActionResult> DeleteAnswer(int id)
+        public async Task<IActionResult> DeleteUsers(int id)
         {
-            var answer = await _context.User.FindAsync(id);
+            var answer = await _context.Users.Include(u => u.Group).Include(u => u.Friends).Include(u => u.Picture).FirstOrDefaultAsync(u => u.Id == id);
             if (answer == null)
             {
                 return NotFound();
             }
 
-            _context.User.Remove(answer);
+            _context.Users.Remove(answer);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool AnswerExists(int id)
+        private bool UsersExists(int id)
         {
-            return _context.User.Any(e => e.Id == id);
+            return _context.Users.Include(u => u.Group).Include(u => u.Friends).Include(u => u.Picture).Any(e => e.Id == id);
         }
     }
 }

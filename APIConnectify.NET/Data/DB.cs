@@ -10,12 +10,28 @@ namespace APIConnectify.NET.Data
         public DB(DbContextOptions<DB> options) : base(options)
         {
         }
-        public DbSet<Users> User { get; set; } = default!;
+        public DbSet<Users> Users { get; set; } = default!;
         public DbSet<GroupsChats> GroupsChats { get; set; } = default!;
         public DbSet<Group> Groups { get; set; } = default!;
 
-        public DbSet<Friends> Friend { get; set; } = default!;
+        public DbSet<Friends> Friends { get; set; } = default!;
         public DbSet<Files> Files { get; set; } = default!;
+    }
+    public class Settings
+    {
+        public int KEYSQL { get; set; }
+        public string APIURL { get; set; }
+        public string APIKey { get; set; } // API ключ для аутентификации
+
+        // Конструктор для инициализации значений KEYSQL, APIURL и APIKey
+        public Settings(int keysql, string apiurl, string apiKey)
+        {
+            KEYSQL = keysql;
+            APIURL = apiurl;
+            APIKey = apiKey;
+        }
+
+
     }
 }
 
