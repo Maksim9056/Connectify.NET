@@ -1,20 +1,26 @@
-﻿namespace APIConnectify.NET.Models
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace APIConnectify.NET.Models
 {
+    [Table("Friends")]
     public class Friends
     {
-        public int Id { get; set; }
-        public int  Friend { get; set; } 
-        public int UserTo { get; set; }
+        [Key]
 
-        public Friends(int id, int friend, int userTo)
-        {
-            Id = id;
-            Friend = friend;
-            UserTo = userTo;
-        }
+        public int Id { get; set; }
+        [Required]
+        public Users  Friend { get; set; }
+
         public Friends()
         {
 
         }
+        public Friends(int id, Users friend)
+        {
+            Id = id;
+            Friend = friend;
+        }
+     
     }
 }

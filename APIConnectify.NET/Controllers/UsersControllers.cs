@@ -19,14 +19,14 @@ namespace APIConnectify.NET.Controllers
         [HttpGet("GET")]
         public async Task<ActionResult<IEnumerable<APIConnectify.NET.Models.Users>>> GetAnswer()
         {
-            return await _context.Users.ToListAsync();
+            return await _context.User.ToListAsync();
         }
 
         // GET: api/Answers/5
         [HttpGet("GETId/{id}")]
         public async Task<ActionResult<APIConnectify.NET.Models.Users>> GetAnswer(int id)
         {
-            var answer = await _context.Users.FindAsync(id);
+            var answer = await _context.User.FindAsync(id);
 
             if (answer == null)
             {
@@ -72,7 +72,7 @@ namespace APIConnectify.NET.Controllers
         [HttpPost("POST")]
         public async Task<ActionResult<APIConnectify.NET.Models.Users>> PostAnswer(APIConnectify.NET.Models.Users answer)
         {
-            _context.Users.Add(answer);
+            _context.User.Add(answer);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetAnswer", new { id = answer.Id }, answer);
@@ -82,13 +82,13 @@ namespace APIConnectify.NET.Controllers
         [HttpDelete("DELETE/{id}")]
         public async Task<IActionResult> DeleteAnswer(int id)
         {
-            var answer = await _context.Users.FindAsync(id);
+            var answer = await _context.User.FindAsync(id);
             if (answer == null)
             {
                 return NotFound();
             }
 
-            _context.Users.Remove(answer);
+            _context.User.Remove(answer);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -96,7 +96,7 @@ namespace APIConnectify.NET.Controllers
 
         private bool AnswerExists(int id)
         {
-            return _context.Users.Any(e => e.Id == id);
+            return _context.User.Any(e => e.Id == id);
         }
     }
 }

@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace APIConnectify.NET.Migrations
 {
     [DbContext(typeof(DB))]
-    [Migration("20240402202941_InitialCreate1")]
-    partial class InitialCreate1
+    [Migration("20240403131655_InitialCreat")]
+    partial class InitialCreat
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -51,13 +51,12 @@ namespace APIConnectify.NET.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("Friend")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("UserTo")
+                    b.Property<int>("FriendId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("FriendId");
 
                     b.ToTable("Friends");
                 });
@@ -90,7 +89,7 @@ namespace APIConnectify.NET.Migrations
                     b.Property<int>("FilesId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("Group")
+                    b.Property<int>("GroupId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Messages")
@@ -100,6 +99,8 @@ namespace APIConnectify.NET.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("FilesId");
+
+                    b.HasIndex("GroupId");
 
                     b.ToTable("GroupsChats");
                 });
@@ -115,10 +116,6 @@ namespace APIConnectify.NET.Migrations
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<List<int>>("Friends")
-                        .IsRequired()
-                        .HasColumnType("integer[]");
 
                     b.Property<List<int>>("Group")
                         .IsRequired()
@@ -155,6 +152,17 @@ namespace APIConnectify.NET.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("APIConnectify.NET.Models.Friends", b =>
+                {
+                    b.HasOne("APIConnectify.NET.Models.Users", "Friend")
+                        .WithMany("Friends")
+                        .HasForeignKey("FriendId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Friend");
+                });
+
             modelBuilder.Entity("APIConnectify.NET.Models.GroupsChats", b =>
                 {
                     b.HasOne("APIConnectify.NET.Models.Files", "Files")
@@ -163,7 +171,15 @@ namespace APIConnectify.NET.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("APIConnectify.NET.Models.Group", "Group")
+                        .WithMany()
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Files");
+
+                    b.Navigation("Group");
                 });
 
             modelBuilder.Entity("APIConnectify.NET.Models.Users", b =>
@@ -184,6 +200,11 @@ namespace APIConnectify.NET.Migrations
             modelBuilder.Entity("APIConnectify.NET.Models.Group", b =>
                 {
                     b.Navigation("Participants");
+                });
+
+            modelBuilder.Entity("APIConnectify.NET.Models.Users", b =>
+                {
+                    b.Navigation("Friends");
                 });
 #pragma warning restore 612, 618
         }

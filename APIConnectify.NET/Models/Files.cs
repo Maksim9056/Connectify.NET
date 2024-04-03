@@ -1,11 +1,11 @@
-﻿namespace APIConnectify.NET.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace APIConnectify.NET.Models
 {
+    [Table("Files")]
+
     public class Files
     {
-        public Files()
-        {
-
-        }
         public  int Id { get; set; }
 
         public byte [] Name { get; set; }
