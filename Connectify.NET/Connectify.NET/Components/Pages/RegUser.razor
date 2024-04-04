@@ -1,0 +1,74 @@
+﻿@page "/RegUser"
+@rendermode InteractiveServer
+@using APIConnectify.NET.Models
+@using System.Net.Http.Json
+@using static System.Reflection.Metadata.BlobBuilder
+@inject IHttpClientFactory ClientFactory
+@inject NavigationManager NavigationManager
+
+
+<div>
+    <label>Имя</label>
+    <input type="text" @bind="Username">
+</div>
+<div>
+    <label>Фамилия</label>
+    <input type="text" @bind="Surname">
+</div>
+
+<div>
+    <label>Пароль</label>
+    <input type="password" @bind="Password">
+</div>
+<div>
+    <label>Почта</label>
+    <input type="email" @bind="Email">
+</div>
+
+<div>
+    <label>Телефон</label>
+    <input type="tel" @bind="Phone">
+</div>
+
+<InputFile OnChange="@HandleFileUpload" />
+
+
+<button class="btn btn-primary" @onclick="SubmitForm">Click me</button>
+
+
+@code {
+
+    public string Username { get; set; }
+    public string Password { get; set; }
+    public string Email { get; set; }
+    public string Surname { get; set; }
+    public string Phone { get; set; }
+    public Files Files {get;set;}
+    public byte[] bytes;
+
+
+    HttpClient httpClient = null!;
+
+    private void SubmitForm()
+    {
+        try
+        {
+            Files files;
+            Users users = new Users(0, Username, Password, Email, Surname, Phone,);
+        }
+        catch (Exception)
+        {
+
+        }
+    }
+    private async Task HandleFileUpload(InputFileChangeEventArgs e)
+    {
+        using (MemoryStream ms = new MemoryStream())
+        {
+            e.File.OpenReadStream().CopyTo(ms);
+            bytes = ms.ToArray();
+        }
+        Files = new Files(0, bytes);
+
+    }
+}

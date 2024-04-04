@@ -32,6 +32,17 @@ namespace APIConnectify.NET.Models
             Group = group;
             Friends = friends;
         }
+
+        public Users(int id, string username, string password, string email, string surname, string phone, Files picture)
+        {
+            Id = id;
+            Username = username;
+            Password = password;
+            Email = email;
+            Surname = surname;
+            Phone = phone;
+            Picture = picture;
+        }
         public Users()
         {
         }
