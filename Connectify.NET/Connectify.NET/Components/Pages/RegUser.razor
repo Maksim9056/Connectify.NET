@@ -167,7 +167,7 @@
             {
 
                 //Открыть один раз  дать значение 
-                var mss= e.File.OpenReadStream();
+                var mss= e.File.OpenReadStream(); 
                  // Копируем в поток 
                   await  mss.CopyToAsync(ms); 
                   //Преобразуем в данные В МАССИВ BYTE[]
