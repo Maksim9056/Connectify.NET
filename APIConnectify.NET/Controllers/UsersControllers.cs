@@ -40,6 +40,21 @@ namespace APIConnectify.NET.Controllers
             return answer;
         }
 
+
+
+        // GET: api/Users/5
+        [HttpGet("GETCheck/{mail},{password}")]
+        public async Task<ActionResult<APIConnectify.NET.Models.Users>> GetUsersCheck(string mail,string password)
+        {
+            var answer = await _context.Users.Include(u => u.Group).Include(u => u.Friends).Include(u => u.Picture).FirstOrDefaultAsync(u => u.Email == mail&&u.Password == password);
+
+            if (answer == null)
+            {
+                return NotFound();
+            }
+
+            return answer;
+        }
         // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("PUTId/{id}")]

@@ -2,10 +2,45 @@
 @rendermode InteractiveServer
 @using APIConnectify.NET.Models
 @using System.Net.Http.Json
+@using System.Text
+@using Newtonsoft.Json
 @using static System.Reflection.Metadata.BlobBuilder
 @inject IHttpClientFactory ClientFactory
 @inject NavigationManager NavigationManager
 
+
+<style>
+    div {
+        margin-bottom: 20px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    input[type="email"],
+    input[type="tel"] {
+        width: 100%;
+        padding: 8px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        box-sizing: border-box; /* чтобы входное поле учитывало границу в своих размерах */
+        font-size: 16px;
+    }
+
+    media (min-width: 768px) {
+        /* Пример адаптации для устройств с шириной экрана 768px и более */
+        input[type="text"],
+        input[type="password"],
+        input[type="email"],
+        input[type="tel"] {
+            width: 50%; /* Изменяем ширину полей на 50% при ширине экрана 768px и более */
+        }
+    }
+</style>
 
 <div>
     <label>Имя</label>
@@ -20,6 +55,7 @@
     <label>Пароль</label>
     <input type="password" @bind="Password">
 </div>
+
 <div>
     <label>Почта</label>
     <input type="email" @bind="Email">
@@ -29,14 +65,14 @@
     <label>Телефон</label>
     <input type="tel" @bind="Phone">
 </div>
-
 <InputFile OnChange="@HandleFileUpload" />
 
 
-<button class="btn btn-primary" @onclick="SubmitForm">Click me</button>
+<button class="btn btn-primary" @onclick="SubmitForm">Зарегистрироваться</button>
 
 
 @code {
+    string url = "https://localhost:7086/api/FilesControllers";
 
     public string Username { get; set; }
     public string Password { get; set; }
@@ -49,26 +85,120 @@
 
     HttpClient httpClient = null!;
 
-    private void SubmitForm()
+    private  async void SubmitForm()
     {
         try
         {
-            Files files;
-            Users users = new Users(0, Username, Password, Email, Surname, Phone,);
+            if (!string.IsNullOrEmpty(Username) && !string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(Email) && !string.IsNullOrEmpty(Surname) && !string.IsNullOrEmpty(Phone))
+            {
+
+                if (Files == null)
+                {
+
+                }
+                else
+                {
+                    Users users = new Users(0, Username, Password, Email, Surname, Phone, Files);
+                    string str =    json(users, 2);
+                    HttpContent content = new StringContent(str, Encoding.UTF8, "application/json");
+
+                    var response = await httpClient.PostAsync(url + str, content);
+                    // Проверяем, успешно ли выполнен запрос
+                    if (response.IsSuccessStatusCode)
+                    {
+                        // Считываем содержимое ответа в строку
+                        string responseContent = await response.Content.ReadAsStringAsync();
+
+                        Files = JsonConvert.DeserializeObject<Files>(responseContent);
+                        // Теперь вы можете работать с содержимым ответа
+                        Console.WriteLine("Содержимое ответа: " + responseContent);
+                        NavigationManager.NavigateTo($"/");
+
+                    }
+                    else
+                    {
+                        // Если запрос не удался, вы можете обработать соответствующий случай здесь
+                        Console.WriteLine("Ошибка: " + response.StatusCode);
+                    }
+
+                }
+
+            }
         }
         catch (Exception)
         {
 
         }
     }
+
+
+    public string json(object obj ,int i)
+    {
+        try
+        {
+
+
+            string str = "";
+            Files files = null;
+            Users users = null;
+            switch (i)
+            {
+                case 1:
+                    files = (Files)obj;
+                    str = JsonConvert.SerializeObject(Files);
+                    break;
+                case 2:
+                    users = (Users)obj;
+                    str = JsonConvert.SerializeObject(Files);
+                    break;
+            }
+            return str;
+        }
+        catch(Exception)
+        {
+            return string.Empty;
+        }
+    }
     private async Task HandleFileUpload(InputFileChangeEventArgs e)
     {
-        using (MemoryStream ms = new MemoryStream())
+        try
         {
-            e.File.OpenReadStream().CopyTo(ms);
-            bytes = ms.ToArray();
-        }
-        Files = new Files(0, bytes);
+            using (MemoryStream ms = new MemoryStream())
+            {
 
+                var mss= e.File.OpenReadStream();
+
+          await      mss.CopyToAsync(ms);
+                // e.File.OpenReadStream().CopyToAsync(ms);
+                bytes = ms.ToArray();
+            }
+            Files = new Files(0, bytes);
+            string jsonString = json(Files,1);
+            HttpContent content = new StringContent(jsonString, Encoding.UTF8, "application/json");
+              
+            var response = await httpClient.PostAsync(url + jsonString, content);
+            // Проверяем, успешно ли выполнен запрос
+            if (response.IsSuccessStatusCode)
+            {
+                // Считываем содержимое ответа в строку
+                string responseContent = await response.Content.ReadAsStringAsync();
+
+                Files = JsonConvert.DeserializeObject<Files>(responseContent);
+                // Теперь вы можете работать с содержимым ответа
+                Console.WriteLine("Содержимое ответа: " + responseContent);
+            }
+            else
+            {
+                // Если запрос не удался, вы можете обработать соответствующий случай здесь
+                Console.WriteLine("Ошибка: " + response.StatusCode);
+            }
+
+            // kod = response.Content.Headers;
+            // NavigationManager.NavigateTo($"/ListChatsAll/{users}");
+        }
+        catch (Exception)
+        {
+
+        }
     }
 }

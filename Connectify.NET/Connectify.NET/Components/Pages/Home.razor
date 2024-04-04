@@ -3,48 +3,90 @@
 @using System.Net.Http.Json
 @using APIConnectify.NET.Models
 @inject IHttpClientFactory ClientFactory
-@* @using Newtonsoft.Json
- *@
 @inject NavigationManager NavigationManager
-
-@* <PageTitle>Home</PageTitle>
-
-<h1>Hello, world!</h1>
-
-Welcome to your new app. *@
+<h1>Авторизация</h1>
 
 
-@code{
 
-    // List<Book> Books;
-    string url = "https://localhost:7224/api/Books";
+<div>
+    <p>Почта</p>
+    <input type="email" @bind="EMAIL" />
+</div>
+
+<div>
+    <p>Пароль</p>
+    <input type="password" @bind="Password" />
+</div>
+
+
+<style>
+    .button {
+        margin-top: 10px; /* Измените значение по вашему усмотрению */
+
+    }
+
+    .another-button {
+        margin-top: 10px;
+        margin-right: 90px; /* Измените значение по вашему усмотрению */
+    }
+</style>
+
+<div>
+    <button type="submit" class="button" @onclick="SubmitForm">Отправить</button>
+</div>
+
+<div>
+    <button type="submit" class="another-button" @onclick="RegForm">Регистрация</button>
+</div>
+@code {
+
+    string Password { get; set; }
+
+    string EMAIL { get; set; }
+
+    string url = "https://localhost:7086/GETCheck/";
 
     HttpClient httpClient = null!;
 
-    protected override async Task OnInitializedAsync()
+    Users users;
+
+    private async void SubmitForm()
     {
         try
         {
-
-            httpClient = ClientFactory.CreateClient();
-            httpClient.BaseAddress = new Uri(url);
-          await  LoadData();
+            if (!string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(EMAIL))
+            {
+                httpClient = ClientFactory.CreateClient();
+                httpClient.BaseAddress = new Uri(url + Password + "," + EMAIL);
+                await LoadData();
+            }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            // Handle exception
-            Console.WriteLine("An error occurred: " + ex.Message);
+
         }
     }
 
+    private  void RegForm()
+    {
+        try
+        {
+            NavigationManager.NavigateTo($"/RegUser");
+
+        }
+        catch (Exception)
+        {
+
+        }
+    }
     async Task LoadData()
     {
         try
         {
-            // Books = await httpClient.GetFromJsonAsync<List<Users>>(httpClient.BaseAddress) ;
-            // update = false;
+            users = await httpClient.GetFromJsonAsync<Users>(httpClient.BaseAddress);
+
         }
-        catch
+        catch (Exception)
         {
 
         }
