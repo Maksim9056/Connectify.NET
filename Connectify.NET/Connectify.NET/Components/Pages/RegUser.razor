@@ -166,17 +166,18 @@
             using (MemoryStream ms = new MemoryStream())
             {
 
+                //Открыть один раз  дать значение 
                 var mss= e.File.OpenReadStream();
-
-          await      mss.CopyToAsync(ms);
-                // e.File.OpenReadStream().CopyToAsync(ms);
-                bytes = ms.ToArray();
+                 // Копируем в поток 
+                  await  mss.CopyToAsync(ms); 
+                  //Преобразуем в данные В МАССИВ BYTE[]
+                  bytes = ms.ToArray();
             }
             Files = new Files(0, bytes);
             string jsonString = json(Files,1);
             HttpContent content = new StringContent(jsonString, Encoding.UTF8, "application/json");
               
-            var response = await httpClient.PostAsync(url + jsonString, content);
+             var response = await httpClient.PostAsync(url + jsonString, content);
             // Проверяем, успешно ли выполнен запрос
             if (response.IsSuccessStatusCode)
             {
