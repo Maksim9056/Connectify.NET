@@ -102,7 +102,7 @@
                     string str =    json(users, 2);
                     HttpContent content = new StringContent(str, Encoding.UTF8, "application/json");
 
-                    var response = await httpClient.PostAsync(url + str, content);
+                    var response = await httpClient.PostAsync(url , content);
                     // Проверяем, успешно ли выполнен запрос
                     if (response.IsSuccessStatusCode)
                     {
@@ -175,9 +175,11 @@
             }
             Files = new Files(0, bytes);
             string jsonString = json(Files,1);
+            httpClient = ClientFactory.CreateClient();
+            httpClient.BaseAddress = new Uri(url);
             HttpContent content = new StringContent(jsonString, Encoding.UTF8, "application/json");
               
-             var response = await httpClient.PostAsync(url + jsonString, content);
+            var response = await httpClient.PostAsync(url , content);
             // Проверяем, успешно ли выполнен запрос
             if (response.IsSuccessStatusCode)
             {
