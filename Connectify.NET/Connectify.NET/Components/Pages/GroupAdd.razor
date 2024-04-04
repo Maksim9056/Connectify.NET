@@ -48,7 +48,7 @@ catch(Exception ex)
 
 
 @code {
-
+    int kod { get; set; }
     HttpClient httpClient = null!;
 
     Users users { get; set; }//Пользователь который Авторизировался
@@ -87,13 +87,15 @@ catch(Exception ex)
             {
                 Group group = new Group(0, НазваниеГруппы, FriendsSelect);
 
-                
+
                 string jsonString = JsonConvert.SerializeObject(group);
                 HttpContent content = new StringContent(jsonString, Encoding.UTF8, "application/json");
 
                 var response = await httpClient.PostAsync(url + jsonString, content);
 
-              
+                // kod = response.Content.Headers;
+                NavigationManager.NavigateTo($"/ListChatsAll/{users}");
+
             }
 
         }
