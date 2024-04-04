@@ -1,4 +1,4 @@
-﻿@page "/GroupChat/{users}"
+﻿@page "/GroupChat/{id}"
 @using APIConnectify.NET.Models
 @rendermode InteractiveServer
 @using System.Net.Http.Json
@@ -8,9 +8,38 @@
  *@
 @inject NavigationManager NavigationManager
 
+@try
+{
+
+@*     @if (users == null)
+    {
+        <p><em>Друзей нет</em></p>
+    }
+    else
+    {
+
+
+        @foreach (var user in users.)
+        {
+            <div>
+                 <label>@user.FriendId.Username <input type="checkbox" @onchange="@(e => ToggleSelection(user.FriendId))" /></label>
+            </div>
+        }
+
+    }  *@
+
+}
+catch (Exception ex)
+{
+    <p><em>Ошибка !!</em></p>
+
+}
+
 
 @code {
-    string url = "https://localhost:7224/api/Books";
+    public int id { get; set; }
+    string url = "https://localhost:7086/api/GroupsChatsControllers/";
+    // Users users { get; set; }//Пользователь который Авторизировался
 
     HttpClient httpClient = null!;
     List<GroupsChats> groupsChats = new List<GroupsChats>();
@@ -18,9 +47,9 @@
     {
         try
         {
-      
+            
             httpClient = ClientFactory.CreateClient();
-            httpClient.BaseAddress = new Uri(url);
+            httpClient.BaseAddress = new Uri(url + id);
             await LoadData();
 
         }
