@@ -25,14 +25,14 @@ namespace APIConnectify.NET.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<GroupsChats>>> GetGroupsChats()
         {
-            return await _context.GroupsChats.Include(u => u.Group).Include(u => u.Files).ToListAsync();
+            return await _context.GroupsChats.Include(u => u.Group).Include(u => u.Files).Include(u => u.Users).ToListAsync();
         }
 
         // GET: api/GroupsChatsControllers/5
         [HttpGet("{id}")]
         public async Task<ActionResult<GroupsChats>> GetGroupsChats(int id)
         {
-            var groupsChats = await _context.GroupsChats.Include(u => u.Group).Include(u=>u.Files).FirstOrDefaultAsync(u => u.Id == id);
+            var groupsChats = await _context.GroupsChats.Include(u => u.Group).Include(u=>u.Files).Include(u => u.Users).FirstOrDefaultAsync(u => u.Id == id);
 
             if (groupsChats == null)
             {
@@ -88,7 +88,7 @@ namespace APIConnectify.NET.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteGroupsChats(int id)
         {
-            var groupsChats = await _context.GroupsChats.Include(u => u.Group).Include(u => u.Files).FirstOrDefaultAsync(u => u.Id == id);
+            var groupsChats = await _context.GroupsChats.Include(u => u.Group).Include(u => u.Files).Include(u => u.Users).FirstOrDefaultAsync(u => u.Id == id);
             if (groupsChats == null)
             {
                 return NotFound();
@@ -102,7 +102,7 @@ namespace APIConnectify.NET.Controllers
 
         private bool GroupsChatsExists(int id)
         {
-            return _context.GroupsChats.Include(u => u.Group).Include(u => u.Files).Any(e => e.Id == id);
+            return _context.GroupsChats.Include(u => u.Group).Include(u => u.Files).Include(u => u.Users).Any(e => e.Id == id);
         }
     }
 }

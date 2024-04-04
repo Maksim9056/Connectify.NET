@@ -1,0 +1,52 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@using System.Net.Http.Json
+@using APIConnectify.NET.Models
+@inject IHttpClientFactory ClientFactory
+@* @using Newtonsoft.Json
+ *@
+@inject NavigationManager NavigationManager
+
+@* <PageTitle>Home</PageTitle>
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app. *@
+
+
+@code{
+
+    // List<Book> Books;
+    string url = "https://localhost:7224/api/Books";
+
+    HttpClient httpClient = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+
+            httpClient = ClientFactory.CreateClient();
+            httpClient.BaseAddress = new Uri(url);
+          await  LoadData();
+        }
+        catch (Exception ex)
+        {
+            // Handle exception
+            Console.WriteLine("An error occurred: " + ex.Message);
+        }
+    }
+
+    async Task LoadData()
+    {
+        try
+        {
+            Books = await httpClient.GetFromJsonAsync<List<Users>>(httpClient.BaseAddress) ;
+            // update = false;
+        }
+        catch
+        {
+
+        }
+    }
+}

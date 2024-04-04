@@ -1,0 +1,48 @@
+﻿@page "/GroupChat/{users}"
+@using APIConnectify.NET.Models
+@rendermode InteractiveServer
+@using System.Net.Http.Json
+@using static System.Reflection.Metadata.BlobBuilder
+@inject IHttpClientFactory ClientFactory
+@* @using Newtonsoft.Json
+ *@
+@inject NavigationManager NavigationManager
+
+
+@code {
+    string url = "https://localhost:7224/api/Books";
+
+    HttpClient httpClient = null!;
+    List<GroupsChats> groupsChats = new List<GroupsChats>();
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+      
+            httpClient = ClientFactory.CreateClient();
+            httpClient.BaseAddress = new Uri(url);
+            await LoadData();
+
+        }
+        catch (Exception ex)
+        {
+            // Handle exception
+            Console.WriteLine("An error occurred: " + ex.Message);
+        }
+    }
+
+    async Task LoadData()
+    {
+        try
+        {
+            groupsChats = await httpClient.GetFromJsonAsync<List<GroupsChats>>(httpClient.BaseAddress) ;
+
+        }
+        catch
+        {
+
+        }
+    }
+
+
+}

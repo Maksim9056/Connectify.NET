@@ -1,4 +1,0 @@
-﻿namespace Connectify.NET.Models
-{
-    
-}

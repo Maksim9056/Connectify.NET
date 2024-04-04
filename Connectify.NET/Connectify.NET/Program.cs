@@ -1,3 +1,4 @@
+using Connectify.NET.Client.Pages;
 using Connectify.NET.Components;
 
 namespace Connectify.NET
@@ -12,8 +13,9 @@ namespace Connectify.NET
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents()
                 .AddInteractiveWebAssemblyComponents();
-
-            var app = builder.Build();
+            builder.Services.AddHttpClient();
+            builder.Services.AddCors();
+           var app = builder.Build();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

@@ -12,16 +12,18 @@ namespace APIConnectify.NET.Models
         public int Id { get; set; }
         [Required]
         public Group Group { get; set; }
+        public Users Users { get; set; }
 
         public string Messages { get; set; }
         public Files Files { get; set; }
 
-        public GroupsChats(int id, Group group, string messages, Files files)
+        public GroupsChats(int id, Group group, string messages, Files files, Users users)
         {
             Id = id;
             Group = group;
             Messages = messages;
             Files = files;
+            Users = users;
         }
         public GroupsChats()
         {

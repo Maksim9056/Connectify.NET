@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using APIConnectify.NET.Data;
 using APIConnectify.NET.Models;
+using Newtonsoft.Json;
 
 namespace APIConnectify.NET.Controllers
 {
@@ -75,9 +76,10 @@ namespace APIConnectify.NET.Controllers
 
         // POST: api/GroupsControllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Group>> PostGroup(Group @group)
+        [HttpPost("{str}")]
+        public async Task<ActionResult<Group>> PostGroup(string str)
         {
+            Group @group = JsonConvert.DeserializeObject<Group>(str);
             _context.Groups.Add(@group);
             await _context.SaveChangesAsync();
 

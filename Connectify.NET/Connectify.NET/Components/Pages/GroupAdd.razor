@@ -1,0 +1,109 @@
+﻿@page "/GroupAdd/{users}"
+@using APIConnectify.NET.Models
+@rendermode InteractiveServer
+@using System.Net.Http.Json
+@using System.Text
+@using Newtonsoft.Json
+@using static System.Reflection.Metadata.BlobBuilder
+@inject IHttpClientFactory ClientFactory
+@* @using Newtonsoft.Json
+ *@
+@inject NavigationManager NavigationManager
+<div style="flex-basis: calc(100% - 2.5px); margin-bottom: 5px;">
+    <label for="name">Название группы</label>
+    <input type="text" @bind="НазваниеГруппы" name="name" style="width: calc(100% - 22px);"><br>
+</div>
+<label>Выберите друзей</label>
+
+<div>
+    <label>@users.Username <input type="checkbox" @onchange="@(e => ToggleSelection(users))" /></label>
+</div>
+@try
+{
+
+    @if (users == null)
+    {
+        <p><em>Друзей нет</em></p>
+    }
+    else
+    {
+
+
+        @foreach (var user in users.Friends)
+        {
+            <div>
+                <label>@user.FriendId.Username <input type="checkbox" @onchange="@(e => ToggleSelection(user.FriendId))" /></label>
+            </div>
+        }
+
+    }
+
+<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+}
+catch(Exception ex)
+{
+    <p><em>Ошибка !!</em></p>
+
+}
+
+
+@code {
+
+    HttpClient httpClient = null!;
+
+    Users users { get; set; }//Пользователь который Авторизировался
+    public string НазваниеГруппы { get; set; }
+    string url = "https://localhost:7086/api/GroupsControllers/";
+
+    List<Users> FriendsSelect = new List<Users>();
+    private void ToggleSelection(Users user)
+    {
+        try
+        {
+
+
+
+            if (FriendsSelect.Contains(user))
+            {
+                FriendsSelect.Remove(user); // Если уже выбран, удаляем из списка выбранных
+            }
+            else
+            {
+                FriendsSelect.Add(user); // Если не выбран, добавляем в список выбранных
+            }
+        }
+        catch
+        {
+
+        }
+    }
+
+    private async void IncrementCount()
+    {
+        try
+        {
+
+            if (!string.IsNullOrEmpty(НазваниеГруппы) && FriendsSelect.Count() > 0)
+            {
+                Group group = new Group(0, НазваниеГруппы, FriendsSelect);
+
+                
+                string jsonString = JsonConvert.SerializeObject(group);
+                HttpContent content = new StringContent(jsonString, Encoding.UTF8, "application/json");
+
+                var response = await httpClient.PostAsync(url + jsonString, content);
+
+              
+            }
+
+        }
+        catch(Exception )
+        {
+            
+        }
+    }
+
+
+
+   
+}

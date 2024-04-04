@@ -91,11 +91,16 @@ namespace APIConnectify.NET.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("UsersId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("FilesId");
 
                     b.HasIndex("GroupId");
+
+                    b.HasIndex("UsersId");
 
                     b.ToTable("GroupsChats");
                 });
@@ -178,9 +183,17 @@ namespace APIConnectify.NET.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("APIConnectify.NET.Models.Users", "Users")
+                        .WithMany()
+                        .HasForeignKey("UsersId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Files");
 
                     b.Navigation("Group");
+
+                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("APIConnectify.NET.Models.Users", b =>
