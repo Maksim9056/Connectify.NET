@@ -25,6 +25,8 @@
     {
         try
         {
+            httpClient = ClientFactory.CreateClient();
+            httpClient.BaseAddress = new Uri(url);
             Friens = await httpClient.GetFromJsonAsync<List<Users>>(httpClient.BaseAddress);
         }
         catch

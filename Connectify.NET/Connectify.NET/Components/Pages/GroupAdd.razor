@@ -86,11 +86,13 @@ catch(Exception)
             {
                 Group group = new Group(0, НазваниеГруппы, FriendsSelect);
 
+                httpClient = ClientFactory.CreateClient();
+                httpClient.BaseAddress = new Uri(url);
 
                 string jsonString = JsonConvert.SerializeObject(group);
                 HttpContent content = new StringContent(jsonString, Encoding.UTF8, "application/json");
 
-                var response = await httpClient.PostAsync(url + jsonString, content);
+                var response = await httpClient.PostAsync(url , content);
 
                 // kod = response.Content.Headers;
                 NavigationManager.NavigateTo($"/ListChatsAll/{users}");
