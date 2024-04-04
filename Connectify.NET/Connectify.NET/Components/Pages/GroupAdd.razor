@@ -40,7 +40,7 @@
 
 <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
 }
-catch(Exception ex)
+catch(Exception)
 {
     <p><em>Ошибка !!</em></p>
 
@@ -50,7 +50,6 @@ catch(Exception ex)
 @code {
     int kod { get; set; }
     HttpClient httpClient = null!;
-
     Users users { get; set; }//Пользователь который Авторизировался
     public string НазваниеГруппы { get; set; }
     string url = "https://localhost:7086/api/GroupsControllers/";

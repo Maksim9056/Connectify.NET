@@ -30,15 +30,20 @@ namespace APIConnectify.NET.Controllers
 
         // GET: api/GroupsChatsControllers/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<GroupsChats>> GetGroupsChats(int id)
+        public async Task<ActionResult<List<GroupsChats>>> GetGroupsChats(int id)
         {
-            var groupsChats = await _context.GroupsChats.Include(u => u.Group).Include(u=>u.Files).Include(u => u.Users).FirstOrDefaultAsync(u => u.Id == id);
+            //var groupsChats = await _context.GroupsChats.Include(u => u.Group).Include(u=>u.Files).Include(u => u.Users).FirstOrDefaultAsync(u => u.Id == id).;
+            var groupsChats = await _context.GroupsChats.Include(u => u.Group).Include(u => u.Files).Include(u => u.Users).Where(u => u.Id == id).ToListAsync();
 
             if (groupsChats == null)
             {
                 return NotFound();
             }
+            if (groupsChats.Count() ==0)
+            {
+                return NotFound();
 
+            }
             return groupsChats;
         }
 

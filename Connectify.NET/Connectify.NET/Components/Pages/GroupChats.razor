@@ -1,4 +1,4 @@
-﻿@page "/GroupChat/{id}"
+﻿@page "/GroupChat/{group},{users}"
 @using APIConnectify.NET.Models
 @rendermode InteractiveServer
 @using System.Net.Http.Json
@@ -11,22 +11,34 @@
 @try
 {
 
-@*     @if (users == null)
+    @if (groupsChats == null)
     {
-        <p><em>Друзей нет</em></p>
+@*         <p><em>Друзей нет</em></p>
+ *@
+
+
     }
     else
     {
-
-
-        @foreach (var user in users.)
+        @if (groupsChats.Count() > 0)
         {
-            <div>
-                 <label>@user.FriendId.Username <input type="checkbox" @onchange="@(e => ToggleSelection(user.FriendId))" /></label>
-            </div>
+            @foreach (var user in groupsChats)
+            {
+                <div>
+                    <b>@user.Users.Username</b>
+                    <p>@user.Messages</p>
+                </div>
+            }
         }
+        else
+        {
+           
+        }
+    }
 
-    }  *@
+    <input type="text" @bind="Название">
+    <button @onclick="SubmitForm">Отправить</button>
+
 
 }
 catch (Exception ex)
@@ -36,22 +48,24 @@ catch (Exception ex)
 }
 
 
-@code {
-    public int id { get; set; }
-    string url = "https://localhost:7086/api/GroupsChatsControllers/";
-    // Users users { get; set; }//Пользователь который Авторизировался
+@code 
+{
 
+    public string Название{ get; set; }
+    public Group group { get; set; }
+    // public int id { get; set; }
+    string url = "https://localhost:7086/api/GroupsChatsControllers/";
+    Users users { get; set; }//Пользователь который Авторизировался
     HttpClient httpClient = null!;
     List<GroupsChats> groupsChats = new List<GroupsChats>();
+
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            
             httpClient = ClientFactory.CreateClient();
-            httpClient.BaseAddress = new Uri(url + id);
+            httpClient.BaseAddress = new Uri(url + group.Id);
             await LoadData();
-
         }
         catch (Exception ex)
         {
@@ -65,7 +79,6 @@ catch (Exception ex)
         try
         {
             groupsChats = await httpClient.GetFromJsonAsync<List<GroupsChats>>(httpClient.BaseAddress) ;
-
         }
         catch
         {
@@ -73,5 +86,21 @@ catch (Exception ex)
         }
     }
 
+    private void SubmitForm()
+    {
+        try
+        {
+            if(!string.IsNullOrEmpty(Название))
+            {
+                byte[] bytes = new byte[] { };
+                Files fs = new Files(0, bytes);
+                GroupsChats groupsChats = new GroupsChats(0, group, Название, fs, users);
+            }
+        }
+        catch(Exception)
+        {
+            
+        }
+    }
 
 }

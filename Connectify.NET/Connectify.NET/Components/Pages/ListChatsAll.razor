@@ -8,23 +8,19 @@
  *@
 @inject NavigationManager NavigationManager
 
-@* @foreach ( var group  in users.Group)
-{
-    
-} *@
-
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+<button class="btn btn-primary" @onclick="IncrementCount">Создать группу</button>
 
 
 @if (users.Group == null)
 {
-    
-}else
+
+}
+else
 {
     @foreach (var group in users.Group)
     {
         <div>
-            <button @onclick="() => OpenGroupChat(group.Id)">
+            <button @onclick="() => OpenGroupChat(group)">
                 @group.GroupName <!-- Отображение имени группы -->
             </button>
         </div>
@@ -40,7 +36,16 @@
     HttpClient httpClient = null!;
     private void IncrementCount()
     {
-        NavigationManager.NavigateTo($"/GroupAdd/{users}");
+        try
+        {
+
+            NavigationManager.NavigateTo($"/GroupAdd/{users}");
+        }
+        catch (Exception ex)
+        {
+            // Handle exception
+            Console.WriteLine("An error occurred: " + ex.Message);
+        }
     }
 
     protected override async Task OnInitializedAsync()
@@ -51,7 +56,6 @@
             httpClient = ClientFactory.CreateClient();
             httpClient.BaseAddress = new Uri(url);
             await LoadData();
-            // // }
         }
         catch (Exception ex)
         {
@@ -64,8 +68,7 @@
     {
         try
         {
-
-            var us  = await httpClient.GetFromJsonAsync<Users>(httpClient.BaseAddress);
+            var us = await httpClient.GetFromJsonAsync<Users>(httpClient.BaseAddress);
             if (us == null)
             {
 
@@ -74,17 +77,23 @@
             {
                 users = us;
             }
-
         }
-        catch
+        catch (Exception)
         {
 
         }
     }
-  
 
-    void OpenGroupChat(int groupId)
+
+    void OpenGroupChat(Group groupId)
     {
-        NavigationManager.NavigateTo($"/GroupChat/{groupId}");
+        try
+        {
+            NavigationManager.NavigateTo($"/GroupChat/{groupId},{users}");
+        }
+        catch (Exception)
+        {
+
+        }
     }
 }

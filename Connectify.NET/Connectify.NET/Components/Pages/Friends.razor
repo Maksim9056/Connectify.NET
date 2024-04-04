@@ -1,12 +1,37 @@
 ﻿@page "/Friends/{users}"
 @using APIConnectify.NET.Models
 @rendermode InteractiveServer
-
-<h3>Friends</h3>
-
+@using System.Net.Http.Json
+@using System.Text
+@using Newtonsoft.Json
+@using static System.Reflection.Metadata.BlobBuilder
+@inject IHttpClientFactory ClientFactory
 
 @code {
+    HttpClient httpClient = null!;
+    List<Users> Friens = new List<Users>();
 
     Users users { get; set; }
+
+    string url = "https://localhost:7086/api/Users/GET";
+
+    protected override async Task OnInitializedAsync()
+    {
+        httpClient = ClientFactory.CreateClient();
+        httpClient.BaseAddress = new Uri(url);
+        await LoadData();
+    }
+    async Task LoadData()
+    {
+        try
+        {
+            Friens = await httpClient.GetFromJsonAsync<List<Users>>(httpClient.BaseAddress);
+        }
+        catch
+        {
+
+        }
+    }
+
 
 }
