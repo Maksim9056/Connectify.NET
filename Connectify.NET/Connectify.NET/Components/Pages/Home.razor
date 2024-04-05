@@ -32,7 +32,7 @@
 </style>
 
 <div>
-    <button type="submit" class="button" @onclick="SubmitForm">Отправить</button>
+    <button type="submit" class="button" @onclick="SubmitForm">Войти</button>
 </div>
 
 <div>
@@ -84,6 +84,17 @@
         try
         {
             users = await httpClient.GetFromJsonAsync<Users>(httpClient.BaseAddress);
+
+
+            if (users == null)
+            {
+
+            }
+            else
+            {
+                NavigationManager.NavigateTo($"/RegUser");
+            }
+
 
         }
         catch (Exception)
