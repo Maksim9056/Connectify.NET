@@ -73,6 +73,7 @@
 
 @code {
     string url = "https://localhost:7086/api/FilesControllers";
+        string urluser = "https://localhost:7086/api/UsersControllers/POST";
 
     public string Username { get; set; }
     public string Password { get; set; }
@@ -98,11 +99,15 @@
                 }
                 else
                 {
-                    Users users = new Users(0, Username, Password, Email, Surname, Phone, Files);
+                    List<Group> groups = new List<Group>();
+                    List<APIConnectify.NET.Models.Friends> friends = new List<APIConnectify.NET.Models.Friends>();
+
+                    Users users = new Users(0, Username, Password, Email, Surname, Phone, Files, groups, friends);
                     string str =    json(users, 2);
                     HttpContent content = new StringContent(str, Encoding.UTF8, "application/json");
-
-                    var response = await httpClient.PostAsync(url , content);
+                    httpClient = ClientFactory.CreateClient();
+                    httpClient.BaseAddress = new Uri(urluser);
+                    var response = await httpClient.PostAsync(urluser, content);
                     // Проверяем, успешно ли выполнен запрос
                     if (response.IsSuccessStatusCode)
                     {
@@ -149,7 +154,7 @@
                     break;
                 case 2:
                     users = (Users)obj;
-                    str = JsonConvert.SerializeObject(Files);
+                    str = JsonConvert.SerializeObject(users);
                     break;
             }
             return str;

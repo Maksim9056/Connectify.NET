@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace APIConnectify.NET.Controllers
 {
+    [Route("api/[controller]")]
+    [ApiController]
     public class UsersControllers : Controller
     {
 
@@ -46,7 +48,7 @@ namespace APIConnectify.NET.Controllers
         [HttpGet("GETCheck/{mail},{password}")]
         public async Task<ActionResult<APIConnectify.NET.Models.Users>> GetUsersCheck(string mail,string password)
         {
-            var answer = await _context.Users.Include(u => u.Group).Include(u => u.Friends).Include(u => u.Picture).FirstOrDefaultAsync(u => u.Email == mail&&u.Password == password);
+            var answer = await _context.Users.Include(u => u.Group).Include(u => u.Friends).Include(u => u.Picture).FirstOrDefaultAsync(u => u.Email == mail && u.Password == password);
 
             if (answer == null)
             {
@@ -94,7 +96,7 @@ namespace APIConnectify.NET.Controllers
             _context.Users.Add(answer);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetAnswer", new { id = answer.Id }, answer);
+            return CreatedAtAction("GetUsers", new { id = answer.Id }, answer);
         }
 
         // DELETE: api/Users/5

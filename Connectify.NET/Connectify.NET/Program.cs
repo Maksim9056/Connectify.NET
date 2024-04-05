@@ -1,5 +1,6 @@
 using Connectify.NET.Client.Pages;
 using Connectify.NET.Components;
+using System.ComponentModel;
 
 namespace Connectify.NET
 {
@@ -15,7 +16,11 @@ namespace Connectify.NET
                 .AddInteractiveWebAssemblyComponents();
             builder.Services.AddHttpClient();
             builder.Services.AddCors();
-           var app = builder.Build();
+            builder.Services.AddScoped<Connectify.NET.Components.Pages.Component>();
+
+            builder.Services.AddScoped<Component>();
+
+            var app = builder.Build();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

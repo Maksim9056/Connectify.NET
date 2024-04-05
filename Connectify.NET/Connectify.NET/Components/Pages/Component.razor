@@ -1,0 +1,57 @@
+﻿@page "/UserUse/"
+@using APIConnectify.NET.Models
+@rendermode InteractiveServer
+@using System.Net.Http.Json
+@using Newtonsoft.Json
+@using static System.Reflection.Metadata.BlobBuilder
+@inject Component userStateService
+@inject IHttpClientFactory ClientFactory
+@inject NavigationManager NavigationManager
+
+
+<div>
+    <button class="btn btn-primary" @onclick="IncrementCount">Посмотреть чат</button>
+
+</div>
+
+<div>
+    <button class="btn btn-primary" @onclick="Friends">Друзья</button>
+</div>
+
+
+@code
+{
+
+
+    public int id { get; set; }
+    [Parameter]
+    public string UsersJson { get; set; }
+
+    [Parameter]
+    public Users users { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (userStateService.users == null)
+        {
+
+        }
+        else
+        {
+            users = userStateService.users;
+
+        }
+
+    }
+    private void IncrementCount()
+    {
+        NavigationManager.NavigateTo($"/UserUse/{users}");
+    }
+
+
+    private void Friends()
+    {
+        NavigationManager.NavigateTo($"/Friends/{users}");
+    }
+}
+
