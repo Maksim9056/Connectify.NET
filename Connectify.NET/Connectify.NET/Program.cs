@@ -17,6 +17,10 @@ namespace Connectify.NET
             builder.Services.AddHttpClient();
             builder.Services.AddCors();
             builder.Services.AddScoped<Connectify.NET.Components.Pages.Component>();
+            builder.Services.AddScoped<Connectify.NET.Components.Pages.GroupAdd>();
+            builder.Services.AddScoped<Connectify.NET.Components.Pages.GroupChats>();
+            builder.Services.AddScoped<Connectify.NET.Components.Pages.ListChatsAll>();
+            builder.Services.AddScoped<Connectify.NET.Components.Pages.Friends>();
 
             builder.Services.AddScoped<Component>();
 

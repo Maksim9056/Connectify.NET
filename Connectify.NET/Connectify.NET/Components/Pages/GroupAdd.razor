@@ -1,4 +1,4 @@
-﻿@page "/GroupAdd/{users}"
+﻿@page "/GroupAdd/"
 @using APIConnectify.NET.Models
 @rendermode InteractiveServer
 @using System.Net.Http.Json
@@ -6,6 +6,8 @@
 @using Newtonsoft.Json
 @using static System.Reflection.Metadata.BlobBuilder
 @inject IHttpClientFactory ClientFactory
+@inject GroupAdd GroupAd
+@inject ListChatsAll ListChatsAl;
 @* @using Newtonsoft.Json
  *@
 @inject NavigationManager NavigationManager
@@ -50,11 +52,40 @@ catch(Exception)
 @code {
     int kod { get; set; }
     HttpClient httpClient = null!;
-    Users users { get; set; }//Пользователь который Авторизировался
+
+    [Parameter]
+    public    Users users { get; set; }//Пользователь который Авторизировался
     public string НазваниеГруппы { get; set; }
     string url = "https://localhost:7086/api/GroupsControllers/";
 
     List<Users> FriendsSelect = new List<Users>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            if(GroupAd == null)
+            {
+
+            }
+            else
+            {
+                users = GroupAd.users;
+
+            }
+
+        
+        
+        }
+        catch (Exception ex)
+        {
+            // Handle exception
+            Console.WriteLine("An error occurred: " + ex.Message);
+        }
+    }
+
+
     private void ToggleSelection(Users user)
     {
         try
@@ -93,9 +124,9 @@ catch(Exception)
                 HttpContent content = new StringContent(jsonString, Encoding.UTF8, "application/json");
 
                 var response = await httpClient.PostAsync(url , content);
-
+                ListChatsAl.users = users;
                 // kod = response.Content.Headers;
-                NavigationManager.NavigateTo($"/ListChatsAll/{users}");
+                NavigationManager.NavigateTo($"/ListChatsAll/");
 
             }
 
