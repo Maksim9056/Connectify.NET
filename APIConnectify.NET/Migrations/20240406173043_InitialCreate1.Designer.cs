@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace APIConnectify.NET.Migrations
 {
     [DbContext(typeof(DB))]
-    [Migration("20240406085334_InitialCreate1")]
+    [Migration("20240406173043_InitialCreate1")]
     partial class InitialCreate1
     {
         /// <inheritdoc />
@@ -73,7 +73,7 @@ namespace APIConnectify.NET.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Group");
+                    b.ToTable("Groups");
                 });
 
             modelBuilder.Entity("APIConnectify.NET.Models.GroupsChats", b =>

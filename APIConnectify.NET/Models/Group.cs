@@ -3,12 +3,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace APIConnectify.NET.Models
 {
-    [Table("Group")]
-
+    [Table("Groups")]
     public class Group
     {
         [Key]
-
         public int Id { get; set; }
         public string GroupName { get; set; }
         public List<Users> Participants { get; set;} = new List<Users>();

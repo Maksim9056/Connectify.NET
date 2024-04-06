@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using APIConnectify.NET.Data;
 using APIConnectify.NET.Models;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 
 namespace APIConnectify.NET.Controllers
 {
@@ -25,22 +26,8 @@ namespace APIConnectify.NET.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Users>>> GetUsers()
         {
-            return await _context.Users.Include(u => u.Group) // Assuming Group is a direct navigation property
-                .Include(u => u.Friends)
-                .Include(u => u.Picture).ToListAsync();
-        }
-        // GET: api/Users/5
-        [HttpGet("GETCheck/{mail},{password}")]
-        public async Task<ActionResult<APIConnectify.NET.Models.Users>> GetUsersCheck(string mail, string password)
-        {
-            var answer = await _context.Users.Include(u => u.Group).Include(u => u.Friends).Include(u => u.Picture).FirstOrDefaultAsync(u => u.Email == mail && u.Password == password);
-
-            if (answer == null)
-            {
-                return NotFound();
-            }
-
-            return answer;
+            return await _context.Users.Include(u => u.Group) // Assuming Group is a direct navigation property      .Include(u => u.Friends)
+                  .Include(u => u.Picture).ToListAsync();
         }
 
         // GET: api/UsersControllers/5
@@ -48,7 +35,6 @@ namespace APIConnectify.NET.Controllers
         public async Task<ActionResult<Users>> GetUsers(int id)
         {
             var users = await _context.Users.Include(u => u.Group).Include(u => u.Friends).Include(u => u.Picture).FirstOrDefaultAsync(u => u.Id == id);
-
             if (users == null)
             {
                 return NotFound();
@@ -90,6 +76,7 @@ namespace APIConnectify.NET.Controllers
 
         // POST: api/UsersControllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+
         [HttpPost("POST")]
         public async Task<ActionResult<Users>> PostUsers(Users users)
         {
@@ -98,12 +85,23 @@ namespace APIConnectify.NET.Controllers
 
             return CreatedAtAction("GetUsers", new { id = users.Id }, users);
         }
+        // GET: api/Users/5
+        [HttpGet("GETCheck/{mail},{password}")]
+        public async Task<ActionResult<APIConnectify.NET.Models.Users>> GetUsersCheck(string mail, string password)
+        {
+            var answer = await _context.Users.Include(u => u.Group).Include(u => u.Friends).Include(u => u.Picture).FirstOrDefaultAsync(u => u.Email == mail && u.Password == password);        // DELETE: api/UsersControllers/5
 
-        // DELETE: api/UsersControllers/5
+            if (answer == null)
+            {
+                return NotFound();
+            }
+
+            return answer;
+        }
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUsers(int id)
         {
-            var users = await _context.Users.Include(u => u.Group).Include(u => u.Friends).Include(u => u.Picture).FirstOrDefaultAsync(u => u.Id == id); 
+            var users = await _context.Users.FindAsync(id);
             if (users == null)
             {
                 return NotFound();

@@ -70,7 +70,7 @@ namespace APIConnectify.NET.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Group");
+                    b.ToTable("Groups");
                 });
 
             modelBuilder.Entity("APIConnectify.NET.Models.GroupsChats", b =>

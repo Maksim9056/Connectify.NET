@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using APIConnectify.NET.Data;
 using APIConnectify.NET.Models;
-using Newtonsoft.Json;
 
 namespace APIConnectify.NET.Controllers
 {
@@ -76,21 +75,21 @@ namespace APIConnectify.NET.Controllers
 
         // POST: api/GroupsControllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        //[HttpPost]
         [HttpPost("POST")]
-        public async Task<ActionResult<Group>> PostGroup(Group group)
+        public async Task<ActionResult<Group>> PostGroup(Group @group)
         {
-            _context.Groups.Add(group);
+            _context.Groups.Add(@group);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetGroup), new { id = group.Id }, group);
+            return CreatedAtAction("GetGroup", new { id = @group.Id }, @group);
         }
-
 
         // DELETE: api/GroupsControllers/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteGroup(int id)
         {
-            var @group = await _context.Groups.Include(u => u.Participants).FirstOrDefaultAsync(u => u.Id == id);
+            var @group = await _context.Groups.Include(u => u.Participants).FirstOrDefaultAsync(u => u.Id == id); 
             if (@group == null)
             {
                 return NotFound();
@@ -104,7 +103,7 @@ namespace APIConnectify.NET.Controllers
 
         private bool GroupExists(int id)
         {
-            return _context.Groups.Include(u => u.Participants).Any(e => e.Id == id);
+            return _context.Groups.Include(u => u.Participants).Any(e => e.Id == id); 
         }
     }
 }

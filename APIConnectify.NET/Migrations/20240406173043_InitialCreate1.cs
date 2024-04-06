@@ -25,7 +25,7 @@ namespace APIConnectify.NET.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Group",
+                name: "Groups",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -34,7 +34,7 @@ namespace APIConnectify.NET.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Group", x => x.Id);
+                    table.PrimaryKey("PK_Groups", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -101,9 +101,9 @@ namespace APIConnectify.NET.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_GroupsChats_Group_GroupId",
+                        name: "FK_GroupsChats_Groups_GroupId",
                         column: x => x.GroupId,
-                        principalTable: "Group",
+                        principalTable: "Groups",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -125,9 +125,9 @@ namespace APIConnectify.NET.Migrations
                 {
                     table.PrimaryKey("PK_GroupUsers", x => new { x.GroupId, x.ParticipantsId });
                     table.ForeignKey(
-                        name: "FK_GroupUsers_Group_GroupId",
+                        name: "FK_GroupUsers_Groups_GroupId",
                         column: x => x.GroupId,
-                        principalTable: "Group",
+                        principalTable: "Groups",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -182,7 +182,7 @@ namespace APIConnectify.NET.Migrations
                 name: "GroupUsers");
 
             migrationBuilder.DropTable(
-                name: "Group");
+                name: "Groups");
 
             migrationBuilder.DropTable(
                 name: "Users");

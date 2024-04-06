@@ -10,7 +10,6 @@ namespace APIConnectify.NET.Models
         [Key]
 
         public int Id { get; set; }
-        [Required]
         public Group Group { get; set; }
         public Users Users { get; set; }
 

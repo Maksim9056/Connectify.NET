@@ -184,7 +184,7 @@
             string jsonString = json(Files,1);
             httpClient = ClientFactory.CreateClient();
             httpClient.BaseAddress = new Uri(url);
-            HttpContent content = new StringContent(jsonString, Encoding.UTF8, "application/json");
+            HttpContent content = new StringContent(jsonString, Encoding.UTF8, "text/plain");
               
             var response = await httpClient.PostAsync(url , content);
             // Проверяем, успешно ли выполнен запрос
