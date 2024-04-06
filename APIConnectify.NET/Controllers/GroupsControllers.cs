@@ -76,15 +76,15 @@ namespace APIConnectify.NET.Controllers
 
         // POST: api/GroupsControllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost("{str}")]
-        public async Task<ActionResult<Group>> PostGroup(string str)
+        [HttpPost("POST")]
+        public async Task<ActionResult<Group>> PostGroup(Group group)
         {
-            Group @group = JsonConvert.DeserializeObject<Group>(str);
-            _context.Groups.Add(@group);
+            _context.Groups.Add(group);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetGroup", new { id = @group.Id }, @group);
+            return CreatedAtAction(nameof(GetGroup), new { id = group.Id }, group);
         }
+
 
         // DELETE: api/GroupsControllers/5
         [HttpDelete("{id}")]

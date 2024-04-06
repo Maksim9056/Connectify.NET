@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace APIConnectify.NET.Migrations
 {
     [DbContext(typeof(DB))]
-    [Migration("20240404190450_InitialCreate1")]
+    [Migration("20240406085334_InitialCreate1")]
     partial class InitialCreate1
     {
         /// <inheritdoc />

@@ -18,6 +18,11 @@ namespace APIConnectify.NET
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddAuthorizationPolicyEvaluator();
+            builder.Services.AddCors();
+            builder.Services.AddHttpClient();
+          
+
             builder.Services.AddDbContext<DB>(options =>
                options.UseNpgsql(builder.Configuration.GetConnectionString("APIConnectifyNETContext") ?? throw new InvalidOperationException("Connection string 'APIConnectifyNETContext' not found.")));
             //builder.Services.AddDbContext<DB>(options =>
@@ -29,7 +34,7 @@ namespace APIConnectify.NET
                     {
                         builder.AllowAnyOrigin()
                                .AllowAnyMethod()
-                               .AllowAnyHeader();
+                               .AllowAnyHeader().WithHeaders();
                     });
             });
             builder.Services.AddControllers();
@@ -44,10 +49,12 @@ namespace APIConnectify.NET
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+            app.UseCors(builder => builder.AllowAnyOrigin());
+            app.UseCors(builder => builder.AllowAnyMethod());
 
             app.UseHttpsRedirection();
             app.UseRouting();
-
+      
             app.UseCors("AllowAll");
 
 

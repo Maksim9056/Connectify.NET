@@ -11,15 +11,7 @@
 @* @using Newtonsoft.Json
  *@
 @inject NavigationManager NavigationManager
-<div style="flex-basis: calc(100% - 2.5px); margin-bottom: 5px;">
-    <label for="name">Название группы</label>
-    <input type="text" @bind="НазваниеГруппы" name="name" style="width: calc(100% - 22px);"><br>
-</div>
-<label>Выберите друзей</label>
 
-<div>
-    <label>@users.Username <input type="checkbox" @onchange="@(e => ToggleSelection(users))" /></label>
-</div>
 @try
 {
 
@@ -29,7 +21,15 @@
     }
     else
     {
+        <div style="flex-basis: calc(100% - 2.5px); margin-bottom: 5px;">
+            <label for="name">Название группы</label>
+            <input type="text" @bind="НазваниеГруппы" name="name" style="width: calc(100% - 22px);"><br>
+        </div>
+        <label>Выберите друзей</label>
 
+        <div>
+            <label>@users.Username <input type="checkbox" @onchange="@(e => ToggleSelection(users))" /></label>
+        </div>
 
         @foreach (var user in users.Friends)
         {
@@ -56,7 +56,7 @@ catch(Exception)
     [Parameter]
     public    Users users { get; set; }//Пользователь который Авторизировался
     public string НазваниеГруппы { get; set; }
-    string url = "https://localhost:7086/api/GroupsControllers/";
+    string url = "https://localhost:7086/api/GroupsControllers/POST";
 
     List<Users> FriendsSelect = new List<Users>();
 
@@ -124,6 +124,7 @@ catch(Exception)
                 HttpContent content = new StringContent(jsonString, Encoding.UTF8, "application/json");
 
                 var response = await httpClient.PostAsync(url , content);
+                //Исправлять надо 
                 ListChatsAl.users = users;
                 // kod = response.Content.Headers;
                 NavigationManager.NavigateTo($"/ListChatsAll/");

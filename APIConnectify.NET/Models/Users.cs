@@ -8,7 +8,6 @@ namespace APIConnectify.NET.Models
     {
         public int Id { get; set; }
         
-
         public string Username { get; set; }
 
         public string Password { get; set; }
@@ -17,8 +16,6 @@ namespace APIConnectify.NET.Models
         public string Phone { get; set; }
         public Files Picture { get; set; }
         public List<Group> Group { get; set; } = new List<Group>();
-        //[Required]
-
         public List<Friends> Friends { get; set; } = new List<Friends>();
         public Users(int id, string username, string password, string email, string surname, string phone, Files picture, List<Group> group, List<Friends> friends)
         {
@@ -31,17 +28,6 @@ namespace APIConnectify.NET.Models
             Picture = picture;
             Group = group;
             Friends = friends;
-        }
-
-        public Users(int id, string username, string password, string email, string surname, string phone, Files picture)
-        {
-            Id = id;
-            Username = username;
-            Password = password;
-            Email = email;
-            Surname = surname;
-            Phone = phone;
-            Picture = picture;
         }
         public Users()
         {

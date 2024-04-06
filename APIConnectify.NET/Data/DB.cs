@@ -1,6 +1,6 @@
 ﻿using APIConnectify.NET.Models;
 using Microsoft.EntityFrameworkCore;
-using Npgsql.EntityFrameworkCore.PostgreSQL;
+//using Npgsql.EntityFrameworkCore.PostgreSQL;
 //using APIConnectify.NET.Models;
 namespace APIConnectify.NET.Data
 {
@@ -10,7 +10,7 @@ namespace APIConnectify.NET.Data
         public DB(DbContextOptions<DB> options) : base(options)
         {
         }
-        public DbSet<Users> Users { get; set; } = default!;
+        public DbSet<APIConnectify.NET.Models.Users> Users { get; set; } = default!;
         public DbSet<GroupsChats> GroupsChats { get; set; } = default!;
         public DbSet<Group> Groups { get; set; } = default!;
 

@@ -10,8 +10,6 @@ namespace APIConnectify.NET.Models
         [Key]
 
         public int Id { get; set; }
-        [Required]
-
         public string GroupName { get; set; }
         public List<Users> Participants { get; set;} = new List<Users>();
      

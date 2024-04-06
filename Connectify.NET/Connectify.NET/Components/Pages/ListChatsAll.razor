@@ -13,6 +13,13 @@
 
 <button class="btn btn-primary" @onclick="IncrementCount">Создать группу</button>
 
+@if (users == null)
+{
+
+}
+else
+{
+    
 
 @if (users.Group == null)
 {
@@ -30,7 +37,7 @@ else
     }
 
 }
-
+}
 @code {
     [Parameter]
 
@@ -67,8 +74,6 @@ else
                 {
                     users = ListChatsAl.users;
                 }
-
-
             }
             httpClient = ClientFactory.CreateClient();
             httpClient.BaseAddress = new Uri(url);
