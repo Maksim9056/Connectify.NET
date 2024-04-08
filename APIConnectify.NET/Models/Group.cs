@@ -10,19 +10,19 @@ namespace APIConnectify.NET.Models
 
         public int Id { get; set; }
         public string GroupName { get; set; }
+        //public List<int> Participants { get; set;} = new List<int>();
+        public List<int> Participants { get; set; } = new List<int>();
 
-         
-        public List<int> Participants { get; set;} = new List<int>();
-     
-        public Group(int id, string groupName, List<int> participants)
-        {
-            Id = id;
-            GroupName = groupName;
-            Participants = participants;
-        }
-        public Group()
-        {
 
-        }
+        //public Group(int id, string groupName, List<int> participants)
+        //{
+        //    Id = id;
+        //    GroupName = groupName;
+        //    Participants = participants;
+        //}
+        //public Group()
+        //{
+
+        //}
     }
 }

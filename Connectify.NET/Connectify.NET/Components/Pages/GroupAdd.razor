@@ -75,8 +75,8 @@ catch(Exception)
 
             }
 
-        
-        
+
+
         }
         catch (Exception ex)
         {
@@ -115,7 +115,7 @@ catch(Exception)
 
             if (!string.IsNullOrEmpty(НазваниеГруппы) && FriendsSelect.Count() > 0)
             {
-                Group group = new Group(0, НазваниеГруппы, FriendsSelect);
+                Group group = new Group { Id = 0, GroupName = НазваниеГруппы, Participants = FriendsSelect };
 
                 httpClient = ClientFactory.CreateClient();
                 httpClient.BaseAddress = new Uri(url);

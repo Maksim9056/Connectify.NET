@@ -7,19 +7,15 @@ namespace APIConnectify.NET.Models
 
     public class GroupsChats
     {
-        //[Key]
-
+        [Key]
         public int Id { get; set; }
-        //[ForeignKey("GroupId")]
         public int Group { get; set; }
-
-        public Users Users { get; set; }
-
+        public int Users { get; set; }
         public string Messages { get; set; }
-
         public byte [] Bytes { get; set; }
 
-        public GroupsChats(int id, int group, Users users, string messages, byte[] bytes)
+
+        public GroupsChats(int id, int group, int users, string messages, byte[] bytes)
         {
             Id = id;
             Group = group;

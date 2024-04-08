@@ -7,7 +7,7 @@ namespace APIConnectify.NET.Models
 
     public class Files
     {
-
+        [Key]
         public int Id { get; set; }
 
         public byte [] Name { get; set; }

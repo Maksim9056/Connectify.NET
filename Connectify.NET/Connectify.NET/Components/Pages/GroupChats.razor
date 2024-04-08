@@ -26,9 +26,19 @@
         @if (groupsChats.Count() > 0)
         {
             @foreach (var user in groupsChats)
-            {    
+            {
                 <div>
-                    <b>@user.Users.Username</b>
+
+                    @{
+                      
+                            var result =  updates(user.Users);
+
+                       
+                    }
+                    <b>@result.Result;</b>
+
+@*                     <b >@updates(user.Users).Result.ToString()</b>
+ *@                    
                     <p>@user.Messages</p>
                 </div>
             }
@@ -37,6 +47,7 @@
         {
            
         }
+
     }
 
     <input type="text" @bind="Название">
@@ -53,7 +64,7 @@ catch (Exception ex)
 
 @code 
 {
-
+    public string pub { get; set; }
     public string Название{ get; set; }
     [Parameter]
     public Group group { get; set; }
@@ -63,13 +74,17 @@ catch (Exception ex)
 
     public Users users { get; set; }//Пользователь который Авторизировался
     HttpClient httpClient = null!;
-
+    public  
+         Users user  { get; set; }//Пользователь который Авторизировался
 
 
     string urlPOST = "https://localhost:7086/api/GroupsChatsControllers";
 
     List<GroupsChats> groupsChats = new List<GroupsChats>();
 
+    string urUser = "https://localhost:7086/api/UsersControllers/";
+
+    bool update = false;
     protected override async Task OnInitializedAsync()
     {
         try
@@ -84,12 +99,26 @@ catch (Exception ex)
 
                 group = GroupChat.group;
                 httpClient = ClientFactory.CreateClient();
-                httpClient.BaseAddress = new Uri(url + group.Id);
-                await LoadData();
+                if (group == null)
+                {
+
+                }
+                else
+                {
+
+                    httpClient.BaseAddress = new Uri(url + group.Id);
+                    await LoadData();
+                    update = true;
+                }
+
 
 
             }
+            if (update == true)
+            {
+                await OnAfterRenderAsync(update);
 
+            }
         }
         catch (Exception ex)
         {
@@ -98,11 +127,57 @@ catch (Exception ex)
         }
     }
 
+    public async Task<string> updates(int id)
+    {
+        try
+        {
+            httpClient = new HttpClient();
+            httpClient.BaseAddress = new Uri(urUser+id);
+
+            var user = await GetUserByIdAsync(id);
+            if (user != null)
+            {
+                return user.Username;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching user: {ex.Message}");
+        }
+        return string.Empty;
+    }
+
+    private async Task<Users> GetUserByIdAsync(int id)
+    {
+        try
+        {
+            HttpResponseMessage response = await httpClient.GetAsync(urUser+id.ToString());
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadFromJsonAsync<Users>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error getting user data: {ex.Message}");
+            return null;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            // This will be executed after the component has rendered
+            // Check conditions here and call LoadData as needed
+            await LoadData();
+        }
+    }
     async Task LoadData()
     {
         try
         {
             groupsChats = await httpClient.GetFromJsonAsync<List<GroupsChats>>(httpClient.BaseAddress) ;
+
         }
         catch
         {
@@ -118,14 +193,14 @@ catch (Exception ex)
             {
                 byte[] bytes = new byte[10];
                 // Files fs = new Files(1, bytes);
-                GroupsChats groupsChats = new GroupsChats(0, group.Id, users, Название, bytes);
+                GroupsChats groupsChats = new GroupsChats {Id= 0, Group = group.Id,Users= users.Id,Messages= Название,Bytes= bytes };
                 httpClient = ClientFactory.CreateClient();
                 httpClient.BaseAddress = new Uri(urlPOST);
                 string jsonString = JsonConvert.SerializeObject(groupsChats);
                 HttpContent content = new StringContent(jsonString, Encoding.UTF8, "application/json");
 
                 var response = await httpClient.PostAsync(url, content);
-                Update();
+                await Update();
 
             }
         }
@@ -136,7 +211,7 @@ catch (Exception ex)
     }
 
 
-    public async void Update()
+    public async Task Update()
     {
         httpClient = ClientFactory.CreateClient();
 

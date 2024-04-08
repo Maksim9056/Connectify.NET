@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace APIConnectify.NET.Migrations
 {
     [DbContext(typeof(DB))]
-    [Migration("20240408092424_InitialCreat12122")]
-    partial class InitialCreat12122
+    [Migration("20240408151730_InitialCreate1")]
+    partial class InitialCreate1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -106,12 +106,10 @@ namespace APIConnectify.NET.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("UsersId")
+                    b.Property<int>("Users")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("UsersId");
 
                     b.ToTable("GroupsChats");
                 });
@@ -170,17 +168,6 @@ namespace APIConnectify.NET.Migrations
                     b.HasOne("APIConnectify.NET.Models.Users", null)
                         .WithMany("Group")
                         .HasForeignKey("UsersId");
-                });
-
-            modelBuilder.Entity("APIConnectify.NET.Models.GroupsChats", b =>
-                {
-                    b.HasOne("APIConnectify.NET.Models.Users", "Users")
-                        .WithMany()
-                        .HasForeignKey("UsersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("APIConnectify.NET.Models.Users", b =>
