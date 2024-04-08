@@ -10,12 +10,12 @@ namespace APIConnectify.NET.Data
         public DB(DbContextOptions<DB> options) : base(options)
         {
         }
-        public DbSet<APIConnectify.NET.Models.Users> Users { get; set; } = default!;
-        public DbSet<GroupsChats> GroupsChats { get; set; } = default!;
-        public DbSet<Group> Groups { get; set; } = default!;
+        public DbSet<Users> Users { get; set; } = null!;
+        public DbSet<GroupsChats> GroupsChats { get; set; } = null!;
+        public DbSet<Group> Group { get; set; } = null!;
 
-        public DbSet<Friends> Friends { get; set; } = default!;
-        public DbSet<Files> Files { get; set; } = default!;
+        public DbSet<Friends> Friends { get; set; } = null!;
+        public DbSet<Files> Files { get; set; } = null!;
     }
     public class Settings
     {

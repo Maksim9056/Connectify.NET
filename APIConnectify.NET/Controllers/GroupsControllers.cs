@@ -25,14 +25,14 @@ namespace APIConnectify.NET.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Group>>> GetGroups()
         {
-            return await _context.Groups.Include(u => u.Participants).ToListAsync();
+            return await _context.Group.ToListAsync();
         }
 
         // GET: api/GroupsControllers/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Group>> GetGroup(int id)
         {
-            var @group = await _context.Groups.Include(u => u.Participants).FirstOrDefaultAsync(u => u.Id == id);
+            var @group = await _context.Group.FirstOrDefaultAsync(u => u.Id == id);
 
             if (@group == null)
             {
@@ -79,23 +79,33 @@ namespace APIConnectify.NET.Controllers
         [HttpPost("POST")]
         public async Task<ActionResult<Group>> PostGroup(Group @group)
         {
-            _context.Groups.Add(@group);
+            _context.Group.Add(@group);
             await _context.SaveChangesAsync();
+
+            foreach (var id in @group.Participants)
+            {
+                var users =   await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+                users.Group.Add(@group);
+                _context.Entry(users).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+
+            }
 
             return CreatedAtAction("GetGroup", new { id = @group.Id }, @group);
         }
+
 
         // DELETE: api/GroupsControllers/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteGroup(int id)
         {
-            var @group = await _context.Groups.Include(u => u.Participants).FirstOrDefaultAsync(u => u.Id == id); 
+            var @group = await _context.Group.FirstOrDefaultAsync(u => u.Id == id); 
             if (@group == null)
             {
                 return NotFound();
             }
 
-            _context.Groups.Remove(@group);
+            _context.Group.Remove(@group);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -103,7 +113,7 @@ namespace APIConnectify.NET.Controllers
 
         private bool GroupExists(int id)
         {
-            return _context.Groups.Include(u => u.Participants).Any(e => e.Id == id); 
+            return _context.Group.Any(e => e.Id == id); 
         }
     }
 }

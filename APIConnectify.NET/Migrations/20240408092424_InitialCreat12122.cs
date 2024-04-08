@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
@@ -6,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace APIConnectify.NET.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate1 : Migration
+    public partial class InitialCreat12122 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -22,19 +23,6 @@ namespace APIConnectify.NET.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Files", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Groups",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    GroupName = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Groups", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -81,58 +69,42 @@ namespace APIConnectify.NET.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Group",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    GroupName = table.Column<string>(type: "text", nullable: false),
+                    Participants = table.Column<List<int>>(type: "integer[]", nullable: false),
+                    UsersId = table.Column<int>(type: "integer", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Group", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Group_Users_UsersId",
+                        column: x => x.UsersId,
+                        principalTable: "Users",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "GroupsChats",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    GroupId = table.Column<int>(type: "integer", nullable: false),
+                    Group = table.Column<int>(type: "integer", nullable: false),
                     UsersId = table.Column<int>(type: "integer", nullable: false),
                     Messages = table.Column<string>(type: "text", nullable: false),
-                    FilesId = table.Column<int>(type: "integer", nullable: false)
+                    Bytes = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_GroupsChats", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_GroupsChats_Files_FilesId",
-                        column: x => x.FilesId,
-                        principalTable: "Files",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_GroupsChats_Groups_GroupId",
-                        column: x => x.GroupId,
-                        principalTable: "Groups",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
                         name: "FK_GroupsChats_Users_UsersId",
                         column: x => x.UsersId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "GroupUsers",
-                columns: table => new
-                {
-                    GroupId = table.Column<int>(type: "integer", nullable: false),
-                    ParticipantsId = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_GroupUsers", x => new { x.GroupId, x.ParticipantsId });
-                    table.ForeignKey(
-                        name: "FK_GroupUsers_Groups_GroupId",
-                        column: x => x.GroupId,
-                        principalTable: "Groups",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_GroupUsers_Users_ParticipantsId",
-                        column: x => x.ParticipantsId,
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -144,24 +116,14 @@ namespace APIConnectify.NET.Migrations
                 column: "FriendIdId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GroupsChats_FilesId",
-                table: "GroupsChats",
-                column: "FilesId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_GroupsChats_GroupId",
-                table: "GroupsChats",
-                column: "GroupId");
+                name: "IX_Group_UsersId",
+                table: "Group",
+                column: "UsersId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_GroupsChats_UsersId",
                 table: "GroupsChats",
                 column: "UsersId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_GroupUsers_ParticipantsId",
-                table: "GroupUsers",
-                column: "ParticipantsId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_PictureId",
@@ -176,13 +138,10 @@ namespace APIConnectify.NET.Migrations
                 name: "Friends");
 
             migrationBuilder.DropTable(
+                name: "Group");
+
+            migrationBuilder.DropTable(
                 name: "GroupsChats");
-
-            migrationBuilder.DropTable(
-                name: "GroupUsers");
-
-            migrationBuilder.DropTable(
-                name: "Groups");
 
             migrationBuilder.DropTable(
                 name: "Users");

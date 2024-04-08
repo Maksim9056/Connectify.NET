@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace APIConnectify.NET.Models
 {
@@ -6,7 +7,8 @@ namespace APIConnectify.NET.Models
 
     public class Files
     {
-        public  int Id { get; set; }
+
+        public int Id { get; set; }
 
         public byte [] Name { get; set; }
 
@@ -14,6 +16,10 @@ namespace APIConnectify.NET.Models
         {
             Id = id;
             Name = name;
+        }
+        public Files()
+        {
+
         }
     }
 }

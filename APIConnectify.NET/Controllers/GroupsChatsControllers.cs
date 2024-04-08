@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using APIConnectify.NET.Data;
 using APIConnectify.NET.Models;
+using Microsoft.AspNetCore.SignalR;
 
 namespace APIConnectify.NET.Controllers
 {
@@ -25,7 +26,7 @@ namespace APIConnectify.NET.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<GroupsChats>>> GetGroupsChats()
         {
-            return await _context.GroupsChats.Include(u => u.Group).Include(u => u.Files).Include(u => u.Users).ToListAsync();
+            return await _context.GroupsChats.Include(u => u.Users).ToListAsync();
         }
 
         // GET: api/GroupsChatsControllers/5
@@ -33,7 +34,7 @@ namespace APIConnectify.NET.Controllers
         public async Task<ActionResult<List<GroupsChats>>> GetGroupsChats(int id)
         {
             //var groupsChats = await _context.GroupsChats.Include(u => u.Group).Include(u=>u.Files).Include(u => u.Users).FirstOrDefaultAsync(u => u.Id == id).;
-            var groupsChats = await _context.GroupsChats.Include(u => u.Group).Include(u => u.Files).Include(u => u.Users).Where(u => u.Id == id).ToListAsync();
+            var groupsChats = await _context.GroupsChats.Include(u => u.Users).Where(u => u.Id == id).ToListAsync();
 
             if (groupsChats == null)
             {
@@ -83,9 +84,20 @@ namespace APIConnectify.NET.Controllers
         [HttpPost]
         public async Task<ActionResult<GroupsChats>> PostGroupsChats(GroupsChats groupsChats)
         {
-            _context.GroupsChats.Add(groupsChats);
-            await _context.SaveChangesAsync();
+            try
+            {
+                //bobretsovms21 @st.ithub.ru
 
+                _context.GroupsChats.Add(groupsChats);
+                await _context.SaveChangesAsync();
+
+                //await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                // Handle exception
+                Console.WriteLine("An error occurred: " + ex.Message);
+            }
             return CreatedAtAction("GetGroupsChats", new { id = groupsChats.Id }, groupsChats);
         }
 
@@ -93,7 +105,7 @@ namespace APIConnectify.NET.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteGroupsChats(int id)
         {
-            var groupsChats = await _context.GroupsChats.Include(u => u.Group).Include(u => u.Files).Include(u => u.Users).FirstOrDefaultAsync(u => u.Id == id);
+            var groupsChats = await _context.GroupsChats.Include(u => u.Users).FirstOrDefaultAsync(u => u.Id == id);
             if (groupsChats == null)
             {
                 return NotFound();
@@ -107,7 +119,7 @@ namespace APIConnectify.NET.Controllers
 
         private bool GroupsChatsExists(int id)
         {
-            return _context.GroupsChats.Include(u => u.Group).Include(u => u.Files).Include(u => u.Users).Any(e => e.Id == id);
+            return _context.GroupsChats.Include(u => u.Users).Any(e => e.Id == id);
         }
     }
 }

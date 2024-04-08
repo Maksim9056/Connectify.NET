@@ -6,6 +6,8 @@ namespace APIConnectify.NET.Models
     [Table("Users")]
     public class Users
     {
+        [Key]
+
         public int Id { get; set; }
         
         public string Username { get; set; }

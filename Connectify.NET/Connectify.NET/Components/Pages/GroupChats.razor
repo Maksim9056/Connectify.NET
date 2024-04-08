@@ -2,6 +2,8 @@
 @using APIConnectify.NET.Models
 @rendermode InteractiveServer
 @using System.Net.Http.Json
+@using Newtonsoft.Json
+@using System.Text
 @using static System.Reflection.Metadata.BlobBuilder
 @inject IHttpClientFactory ClientFactory
 @inject GroupChats GroupChat
@@ -24,7 +26,7 @@
         @if (groupsChats.Count() > 0)
         {
             @foreach (var user in groupsChats)
-            {
+            {    
                 <div>
                     <b>@user.Users.Username</b>
                     <p>@user.Messages</p>
@@ -62,6 +64,10 @@ catch (Exception ex)
     public Users users { get; set; }//Пользователь который Авторизировался
     HttpClient httpClient = null!;
 
+
+
+    string urlPOST = "https://localhost:7086/api/GroupsChatsControllers";
+
     List<GroupsChats> groupsChats = new List<GroupsChats>();
 
     protected override async Task OnInitializedAsync()
@@ -80,8 +86,10 @@ catch (Exception ex)
                 httpClient = ClientFactory.CreateClient();
                 httpClient.BaseAddress = new Uri(url + group.Id);
                 await LoadData();
+
+
             }
-          
+
         }
         catch (Exception ex)
         {
@@ -102,21 +110,38 @@ catch (Exception ex)
         }
     }
 
-    private void SubmitForm()
+    private async void SubmitForm()
     {
         try
         {
             if(!string.IsNullOrEmpty(Название))
             {
-                byte[] bytes = new byte[] { };
-                Files fs = new Files(0, bytes);
-                GroupsChats groupsChats = new GroupsChats(0, group, Название, fs, users);
+                byte[] bytes = new byte[10];
+                // Files fs = new Files(1, bytes);
+                GroupsChats groupsChats = new GroupsChats(0, group.Id, users, Название, bytes);
+                httpClient = ClientFactory.CreateClient();
+                httpClient.BaseAddress = new Uri(urlPOST);
+                string jsonString = JsonConvert.SerializeObject(groupsChats);
+                HttpContent content = new StringContent(jsonString, Encoding.UTF8, "application/json");
+
+                var response = await httpClient.PostAsync(url, content);
+                Update();
+
             }
         }
         catch(Exception)
         {
-            
+
         }
+    }
+
+
+    public async void Update()
+    {
+        httpClient = ClientFactory.CreateClient();
+
+        httpClient.BaseAddress = new Uri(url + group.Id);
+        await LoadData();
     }
 
 }

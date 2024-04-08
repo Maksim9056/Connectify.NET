@@ -28,13 +28,13 @@
         <label>Выберите друзей</label>
 
         <div>
-            <label>@users.Username <input type="checkbox" @onchange="@(e => ToggleSelection(users))" /></label>
+            <label>@users.Username <input type="checkbox" @onchange="@(e => ToggleSelection(users.Id))" /></label>
         </div>
 
         @foreach (var user in users.Friends)
         {
             <div>
-                <label>@user.FriendId.Username <input type="checkbox" @onchange="@(e => ToggleSelection(user.FriendId))" /></label>
+                <label>@user.FriendId.Username <input type="checkbox" @onchange="@(e => ToggleSelection(user.FriendId.Id))" /></label>
             </div>
         }
 
@@ -58,7 +58,7 @@ catch(Exception)
     public string НазваниеГруппы { get; set; }
     string url = "https://localhost:7086/api/GroupsControllers/POST";
 
-    List<Users> FriendsSelect = new List<Users>();
+    List<int> FriendsSelect = new List<int>();
 
 
     protected override async Task OnInitializedAsync()
@@ -86,7 +86,7 @@ catch(Exception)
     }
 
 
-    private void ToggleSelection(Users user)
+    private void ToggleSelection(int user)
     {
         try
         {
