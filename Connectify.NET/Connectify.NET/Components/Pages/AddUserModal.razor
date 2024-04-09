@@ -1,0 +1,121 @@
+﻿@inject IJSRuntime JSRuntime
+
+<style>
+    /* site.css */
+
+    / /* site.css */
+    /* Стили для модального фона */
+    .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5); /* Полупрозрачный черный фон */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Стили для модального диалога */
+    .modal-dialog {
+        background-color: #fff; /* Цвет фона модального окна */
+        border-radius: 5px;
+        max-width: 80%; /* Максимальная ширина модального окна */
+        width: auto; /* Ширина автоматически подстраивается по содержимому */
+        max-height: 80%; /* Максимальная высота модального окна */
+        overflow-y: auto; /* Включить вертикальную прокрутку, если содержимое не помещается */
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); /* Тень для выделения модального окна */
+    }
+
+
+
+
+    .modal-header {
+        padding: 15px;
+        border-bottom: 1px solid #ccc;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-body {
+        padding: 15px;
+    }
+
+    .modal-footer {
+        padding: 15px;
+        border-top: 1px solid #ccc;
+        text-align: right;
+    }
+
+</style>
+<script>
+    window.dragModal = (modalDialogId) => {
+        let modalDialog = document.getElementById(modalDialogId);
+        let isDragging = false;
+        let offsetX = 0;
+        let offsetY = 0;
+
+        modalDialog.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            offsetX = e.clientX - modalDialog.getBoundingClientRect().left;
+            offsetY = e.clientY - modalDialog.getBoundingClientRect().top;
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                let newX = e.clientX - offsetX;
+                let newY = e.clientY - offsetY;
+
+                modalDialog.style.left = newX + 'px';
+                modalDialog.style.top = newY + 'px';
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+    };
+
+</script>
+
+@if (IsVisible)
+{
+    <div class="modal-backdrop">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@Title</h5>
+                    <button type="button" class="close" @onclick="Close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    @Body
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="Close">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public string Title { get; set; }
+    [Parameter] public RenderFragment Body { get; set; }
+
+    private bool IsVisible { get; set; }
+
+    public void Show()
+    {
+        IsVisible = true;
+        StateHasChanged();
+    }
+
+    private void Close()
+    {
+        IsVisible = false;
+        StateHasChanged();
+    }
+}
