@@ -31,10 +31,50 @@ namespace APIConnectify.NET.Controllers
 
         // GET: api/GroupsChatsControllers/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<List<GroupsChats>>> GetGroupsChats(int id)
+        public async Task<ActionResult<List<GroupChatsSelect>>> GetGroupsChats(int id)
         {
             //var groupsChats = await _context.GroupsChats.Include(u => u.Group).Include(u=>u.Files).Include(u => u.Users).FirstOrDefaultAsync(u => u.Id == id).;
             var groupsChats = await _context.GroupsChats.Where(u => u.Group == id).ToListAsync();
+            bool tr = false;
+            List<Users> grouUsersSelects = new List<Users>();
+
+            List<GroupChatsSelect> groupChatsSelects = new List<GroupChatsSelect>();
+            GroupUsers sQ = new GroupUsers();
+            for (int i = 0; i< groupsChats.Count(); i++)
+            {
+                 var user = await _context.Users.Include(u => u.Group).Include(u => u.Friends).Include(u => u.Picture).FirstOrDefaultAsync(u => u.Id == groupsChats[i].Users);
+                 
+                
+                var @group = await _context.Group.FirstOrDefaultAsync(u => u.Id == groupsChats[i].Group);
+                if (tr == false)
+                {
+                    foreach (var s in @group.Participants)
+                    {
+                        Users users1 = new Users();
+                        Users users = await _context.Users.Include(u => u.Group).Include(u => u.Friends).Include(u => u.Picture).FirstOrDefaultAsync(u => u.Id == s);
+
+                        if (users == null)
+                        {
+                            users1.Username = "Пользователь удален";
+                        }
+                        else
+                        {
+                            users1 = users;
+                        }
+
+
+                        grouUsersSelects.Add(users1);
+                    }
+                    sQ.GroupName = @group.GroupName;
+                    sQ.Id = @group.Id;
+                    sQ.Participants = grouUsersSelects;
+                }
+             
+
+                GroupChatsSelect groupChatsSelect = new GroupChatsSelect(groupsChats[i].Id, sQ, user, groupsChats[i].Messages, groupsChats[i].Bytes);
+                groupChatsSelects.Add(groupChatsSelect);
+
+            }
 
             if (groupsChats == null)
             {
@@ -45,7 +85,7 @@ namespace APIConnectify.NET.Controllers
                 return NotFound();
 
             }
-            return groupsChats;
+            return groupChatsSelects;
         }
 
         // PUT: api/GroupsChatsControllers/5

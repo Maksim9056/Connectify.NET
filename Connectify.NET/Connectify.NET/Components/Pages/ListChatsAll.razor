@@ -10,8 +10,24 @@
 @* @using Newtonsoft.Json
  *@
 @inject NavigationManager NavigationManager
+<style>
+    .buton {
+        margin-left: 945px; /* отступ слева */
+        /*         margin-right: 20px; /* отступ справа  StateHasChanged*/
+      
 
-<button class="btn btn-primary" @onclick="IncrementCount">Создать группу</button>
+       margin-right :auto;
+
+    }
+     media screen and (min-width: 768px) {
+        /* Для устройств шире 768px (например, Windows) */
+        .button {
+            margin-left: auto; /* отступ слева на широких экранах (Windows) */
+            margin-right: 20px; /* отступ справа на широких экранах (Windows) */
+        }
+    }
+</style>
+<button class="buton" @onclick="IncrementCount">Создать группу</button>
 
 @if (users == null)
 {
