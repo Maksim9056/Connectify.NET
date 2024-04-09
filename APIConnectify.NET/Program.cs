@@ -26,8 +26,8 @@ namespace APIConnectify.NET
 
             //builder.Services.AddDbContext<DB>(options =>
             //   options.UseNpgsql(builder.Configuration.GetConnectionString("APIConnectifyNETContext") ?? throw new InvalidOperationException("Connection string 'APIConnectifyNETContext' not found.")));
-            builder.Services.AddDbContext<DB>(options =>
-               options.UseNpgsql(builder.Configuration.GetConnectionString("APIConnectifyNETContext") ?? throw new InvalidOperationException("Connection string 'APIConnectifyNETContext' not found.")));
+         //   builder.Services.AddDbContext<DB>(options =>
+         //      options.UseNpgsql(builder.Configuration.GetConnectionString("APIConnectifyNETContext") ?? throw new InvalidOperationException("Connection string 'APIConnectifyNETContext' not found.")));
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAll",
