@@ -11,23 +11,47 @@
  *@
 @inject NavigationManager NavigationManager
 <style>
-    .buton {
-        margin-left: 945px; /* отступ слева */
-        /*         margin-right: 20px; /* отступ справа  StateHasChanged*/
-      
-
-       margin-right :auto;
-
+    /* Стили для контейнера группы чата */
+    .chat-group {
+        margin-bottom: 10px; /* Расстояние между группами чата */
     }
-     media screen and (min-width: 768px) {
-        /* Для устройств шире 768px (например, Windows) */
-        .button {
-            margin-left: auto; /* отступ слева на широких экранах (Windows) */
-            margin-right: 20px; /* отступ справа на широких экранах (Windows) */
+
+    /* Стили для кнопки группы чата */
+    .group-button {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+        .group-button:hover {
+            background-color: #0056b3; /* Изменение цвета при наведении курсора */
         }
+
+    /* Стили для кнопки "Создать группу" */
+    .create-group-button {
+        display: block;
+        width: 200px;
+        padding: 10px;
+        margin: 20px 0; /* Отступ сверху и снизу */
+        background-color: #28a745;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        text-align: center; /* Выравнивание текста по центру */
     }
+
+        .create-group-button:hover {
+            background-color: #218838; /* Изменение цвета при наведении курсора */
+        }
 </style>
-<button class="buton" @onclick="IncrementCount">Создать группу</button>
 
 <h1>Чаты</h1>
 @if (users == null)
@@ -46,15 +70,17 @@ else
 {
     @foreach (var group in users.Group)
     {
-        <div>
-            <button @onclick="() => OpenGroupChat(group)">
+            <div class="chat-group">
+                <button class="group-button" @onclick="() => OpenGroupChat(group)">
                 @group.GroupName <!-- Отображение имени группы -->
             </button>
         </div>
     }
 
-}
-}
+}}
+<!-- Кнопка "Создать группу" -->
+<button class="create-group-button" @onclick="IncrementCount">Создать группу</button>
+
 @code {
 
     [Parameter]

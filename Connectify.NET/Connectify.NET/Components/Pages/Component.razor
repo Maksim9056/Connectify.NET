@@ -9,14 +9,33 @@
 @inject NavigationManager NavigationManager
 @inject ListChatsAll ListChatsAl
 
+<style>
+    /* styles.css (или другой файл, куда вы помещаете свои стили) */
 
+    .chat-button, .friends-button {
+        padding: 10px 20px;
+        font-size: 16px;
+        border-radius: 5px;
+        cursor: pointer;
+        background-color: #007bff; /* синий цвет */
+        color: #ffffff; /* белый цвет текста */
+        border: none;
+        margin-bottom: 10px;
+    }
+
+        .chat-button:hover, .friends-button:hover {
+            background-color: #0056b3; /* более темный оттенок синего при наведении */
+        }
+
+    /* Можете добавить другие стили по вашему усмотрению */
+</style>
 <div>
-    <button class="btn btn-primary" @onclick="IncrementCount">Посмотреть чат</button>
+    <button class="chat-button" @onclick="IncrementCount">Посмотреть чат</button>
 
 </div>
 
 <div>
-    <button class="btn btn-primary" @onclick="Friends">Друзья</button>
+    <button class="friends-button" @onclick="Friends">Друзья</button>
 </div>
 
 
