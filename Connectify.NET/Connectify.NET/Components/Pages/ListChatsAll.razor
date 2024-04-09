@@ -29,9 +29,10 @@
 </style>
 <button class="buton" @onclick="IncrementCount">Создать группу</button>
 
+<h1>Чаты</h1>
 @if (users == null)
 {
-
+     
 }
 else
 {
@@ -55,9 +56,10 @@ else
 }
 }
 @code {
-    [Parameter]
 
+    [Parameter]
     public Users users { get; set; }
+
     string url = "https://localhost:7086/api/GroupsControllers";
 
     HttpClient httpClient = null!;
@@ -100,6 +102,8 @@ else
             else
             {
                 await LoadData();
+                StateHasChanged();
+
             }
         }
         catch (Exception ex)
