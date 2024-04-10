@@ -11,75 +11,82 @@
  *@
 @inject NavigationManager NavigationManager
 <style>
-    /* Стили для контейнера группы чата */
-    .chat-group {
-        margin-bottom: 10px; /* Расстояние между группами чата */
+    /* Стили для контейнера списка групп чата */
+    .group-list-container {
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        overflow-y: auto;
+        max-height: 300px;
+        margin-bottom: 20px;
+        text-align: center; /* Выравнивание по центру */
     }
 
-    /* Стили для кнопки группы чата */
-    .group-button {
-        display: block;
-        width: 100%;
+    /* Стили для списка групп чата */
+    .group-list {
         padding: 10px;
+    }
+
+    /* Стили для кнопок группы чата и создания группы */
+    .group-button, .create-group-button {
+        display: block;
+        width: 200px; /* Ширина кнопок */
+        height: 40px; /* Высота кнопок */
+        margin-bottom: 10px; /* Отступ между кнопками */
+        padding: 8px;
         background-color: #007bff;
         color: #fff;
         border: none;
         border-radius: 5px;
         cursor: pointer;
         transition: background-color 0.3s ease;
+        font-size: 16px;
+        font-weight: bold;
     }
 
-        .group-button:hover {
-            background-color: #0056b3; /* Изменение цвета при наведении курсора */
+        /* Изменение цвета кнопок при наведении курсора */
+        .group-button:hover, .create-group-button:hover {
+            background-color: #0056b3;
         }
 
-    /* Стили для кнопки "Создать группу" */
-    .create-group-button {
-        display: block;
-        width: 200px;
-        padding: 10px;
-        margin: 10px 0; /* Отступ сверху и снизу */
-        background-color: #28a745;
-        color: #fff;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-        text-align: center; /* Выравнивание текста по центру */
+    /* Стили для выравнивания заголовка "Чаты" и кнопки "Создать группу" */
+    .header-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 20px;
     }
 
-        .create-group-button:hover {
-            background-color: #218838; /* Изменение цвета при наведении курсора */
-        }
+    h1 {
+        margin: 0;
+        margin-right: 10px;
+    }
+
 </style>
+<div class="header-container">
+    <h1>Чаты</h1>
+    <button class="create-group-button" @onclick="IncrementCount">Создать группу</button>
+</div>
 
-<h1>Чаты</h1>
-@if (users == null)
-{
-     
-}
-else
-{
-    
-
-@if (users.Group == null)
-{
-
-}
-else
-{
-    @foreach (var group in users.Group)
+<div class="group-list-container">
+    @if (users == null || users.Group == null || !users.Group.Any())
     {
-            <div class="chat-group">
-                <button class="group-button" @onclick="() => OpenGroupChat(group)">
-                @group.GroupName <!-- Отображение имени группы -->
-            </button>
+        <p>Нет доступных групп чата.</p>
+    }
+    else
+    {
+        <div class="group-list">
+            @foreach (var group in users.Group)
+            {
+                <div class="chat-group">
+                    <button class="group-button" @onclick="() => OpenGroupChat(group)">
+                        @group.GroupName <!-- Отображение имени группы -->
+                    </button>
+                </div>
+            }
         </div>
     }
+</div>
 
-}}
-<!-- Кнопка "Создать группу" -->
-<button class="create-group-button" @onclick="IncrementCount">Создать группу</button>
 
 @code {
 
