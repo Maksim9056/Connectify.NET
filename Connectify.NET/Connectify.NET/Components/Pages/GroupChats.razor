@@ -10,166 +10,176 @@
 @using Newtonsoft.Json
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
-
+@using APIConnectify.NET.Models
+@inject IJSRuntime JSRuntime
 <style>
-    /* Стили для кнопки "Вернуться на предыдущую страницу" */
-    .return-button {
-        background-color: #007bff;
-        color: #ffffff;
-        border: none;
-        padding: 8px 12px;
-        border-radius: 5px;
-        cursor: pointer;
-        margin-top: 10px; /* Отступ сверху */
-        margin-left: 10px; /* Отступ слева */
-    }
-
-    /* Стили для контейнера чата */
-    .chat-container {
-        width: 100%;
-        max-width: 400px; /* Максимальная ширина контейнера чата */
-        background-color: #f9f9f9;
-        border: 1px solid #ccc;
-        padding: 10px;
+    .page-container {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start; /* Выравнивание контейнера по верхнему краю */
+        height: 100vh;
+        padding: 10px 10px 10px; /* Увеличение отступа сверху и снизу, снизу оставлено 50px */
         box-sizing: border-box;
     }
 
-    /* Стили для сообщений чата */
-    .chat-message {
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        padding: 10px;
-        margin-bottom: 10px;
-        background-color: #f9f9f9;
+    .chat-container {
+        background-color: #ffffff;
+        width: 100%;
+        max-width: 1000px; /* Максимальная ширина контейнера чата */
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        box-sizing: border-box;
+        overflow: hidden; /* Скрытие излишнего содержимого чата за пределами контейнера */
     }
 
-    /* Стили для информации о пользователе */
+    .chat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 10px;
+    }
+
+    .chat-title {
+        font-size: 24px;
+        color: #333;
+        margin: 0;
+    }
+
+    .return-button,
+    .another-button {
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .chat-messages {
+        max-height: 60vh; /* Максимальная высота области сообщений, соответствующая 60% высоты видимой области */
+        overflow-y: auto;
+        margin-bottom: 20px;
+        padding-right: 10px;
+    }
+
+    .chat-message {
+        background-color: #f0f0f0;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 12px;
+    }
+
     .user-info {
         display: flex;
         align-items: center;
-        margin-bottom: 5px;
+        margin-bottom: 8px;
     }
 
         .user-info b {
-            margin-right: 5px;
+            margin-right: 8px;
             font-weight: bold;
+            color: #333;
         }
 
-    /* Стили для входного поля чата */
+        .user-info img {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 8px;
+        }
+
     .chat-input {
-        width: calc(100% - 80px); /* Ширина поля минус ширина кнопки */
-        padding: 8px;
-        box-sizing: border-box;
+        flex: 1;
+        padding: 12px;
         border: 1px solid #ccc;
         border-radius: 5px;
-        margin-top: 10px;
-        margin-right: 10px; /* Отступ справа */
+        margin-right: 10px;
+        box-sizing: border-box;
+        font-size: 16px;
     }
 
-    /* Стили для кнопки отправки сообщения */
     .chat-send-button {
         background-color: #4caf50;
-        color: #ffffff;
+        color: #fff;
         border: none;
-        padding: 8px 12px;
+        padding: 12px 20px;
         border-radius: 5px;
         cursor: pointer;
-        margin-top: 10px; /* Отступ сверху */
+        font-size: 16px;
     }
 
-        /* Псевдокласс для стилизации активного состояния кнопки отправки сообщения */
-        .chat-send-button:hover {
-            background-color: #45a049;
-        }
-
-    /* Стили для кнопки "Добавить собеседника" */
-    .another-button {
-        background-color: #007bff;
-        color: #ffffff;
-        border: none;
-        padding: 8px 12px;
-        border-radius: 5px;
-        cursor: pointer;
-        margin-top: 10px; /* Отступ сверху */
+    .no-messages {
+        color: #666;
+        text-align: center;
     }
-
-        /* Псевдокласс для стилизации активного состояния кнопки "Добавить собеседника" */
-        .another-button:hover {
-            background-color: #0056b3;
-        }
-
 </style>
 
-
-@try
-{
-    @if (group != null)
+<div class="page-container">
+    @try
     {
-        <!-- Заголовок и кнопка "Вернуться на предыдущую страницу" на одном уровне -->
-        <div style="display: flex; align-items: center;">
-            <h1>@group.GroupName</h1>
-            <button onclick="goBack()" class="return-button">Вернуться на предыдущую страницу</button>
-<!-- Кнопка "Добавить собеседника" -->
-<button @onclick="OpenAddUserModal" class="another-button">Добавить собеседника</button>
+        <div class="chat-container">
+            @if (group != null)
+            {
+                <div class="chat-header">
+                    <h1 class="chat-title">@group.GroupName</h1>
+                    <button onclick="goBack()" class="return-button">Назад</button>
+                    <button @onclick="OpenAddUserModal" class="another-button">Добавить собеседника</button>
+                </div>
+            }
 
+            <AddUserModal @ref="addUserModal" Title="Добавление собеседника">
+                <ModalBody>
+                    <!-- Кастомизируйте содержимое модального окна по необходимости -->
+                    <p>Форма для добавления участника здесь...</p>
+                </ModalBody>
+            </AddUserModal>
 
-     </div>
-    }
-
-    <!-- Модальное окно для добавления собеседника -->
-    <AddUserModal @ref="@addUserModal" />
-
-
-    <AddUserModal @ref="modal" Title="Добавление пользователя">
-        <Body >
-
-        </Body>
-    </AddUserModal>
-    @if (groupsChats != null && groupsChats.Any())
-    {
-        @if (groupsChats.Count() > 0)
-        {
             <div class="chat-messages">
-                @foreach (var user in groupsChats)
+                @if (groupsChats != null && groupsChats.Any())
                 {
-                    <div class="chat-message">
-                        <div class="user-info">
-                            <b>@user.Users.Username</b>
-                            <img src="data:image/png;base64,@Convert.ToBase64String(user.Users.Picture.Name)" width="30">
+                    @foreach (var user in groupsChats)
+                    {
+                        <div class="chat-message">
+                            <div class="user-info">
+                                <img src="data:image/png;base64,@Convert.ToBase64String(user.Users.Picture.Name)" alt="User Avatar">
+                                <b>@user.Users.Username</b>
+                            </div>
+                            <p>@user.Messages</p>
                         </div>
-                        <p>@user.Messages</p>
-                    </div>
+                    }
+                }
+                else
+                {
+                    <p class="no-messages">Нет сообщений.</p>
                 }
             </div>
-        }
-        else
-        {
-            <p>No messages found.</p>
-        }
+
+            <div class="input-container">
+                <input type="text" placeholder="Введите сообщение..." @bind="Название" class="chat-input">
+                <button @onclick="SubmitForm" class="chat-send-button">Отправить</button>
+            </div>
+        </div>
     }
+    catch (Exception ex)
+    {
+        <p><em>Ошибка !!</em></p>
+    }
+</div>
 
-    <div class="input-container">
-        <input type="text" @bind="Название" class="chat-input">
-        <button @onclick="SubmitForm" class="chat-send-button">Отправить</button>
-    </div>
-
-
-    <script>
-        // JavaScript функция для возврата на предыдущую страницу
-        function goBack() {
-            window.history.back(); // Используем метод window.history.back() для перехода назад
-        }
-    </script>
-}
-catch (Exception ex)
-{
-    <p><em>Ошибка !!</em></p>
-}
-
+<script>
+    // JavaScript функция для возврата на предыдущую страницу
+    function goBack() {
+        window.history.back(); // Используем метод window.history.back() для перехода назад
+    }
+</script>
 
 @code
 {
-    private AddUserModal modal;
 
     public string pub { get; set; }
     public string Название { get; set; }
@@ -183,7 +193,7 @@ catch (Exception ex)
     HttpClient httpClient = null!;
     public Users user { get; set; }//Пользователь который Авторизировался
 
-    private AddUserModal addUserModal; // Ссылка на компонент модального окна
+    private AddUserModal addUserModal;
 
     string urlPOST = "https://localhost:7086/api/GroupsChatsControllers";
 
@@ -192,10 +202,16 @@ catch (Exception ex)
     string urUser = "https://localhost:7086/api/UsersControllers/";
     private void OpenAddUserModal()
     {
-        StateHasChanged();
-
-        // Открытие модального окна добавления собеседника
-        modal.Show();
+        try
+        {
+            // Открытие модального окна добавления собеседника
+            addUserModal.Show();
+        }
+        catch (Exception ex)
+        {
+            // Handle exception
+            Console.WriteLine("An error occurred: " + ex.Message);
+        }
     }
 
     bool update = false;
@@ -247,6 +263,7 @@ catch (Exception ex)
             await LoadData();
         }
     }
+
     async Task LoadData()
     {
         try
@@ -290,9 +307,6 @@ catch (Exception ex)
         httpClient.BaseAddress = new Uri(url + group.Id);
         await LoadData();
     }
-
-
-
 }
 
 
