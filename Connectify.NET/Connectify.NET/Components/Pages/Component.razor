@@ -8,6 +8,7 @@
 @inject IHttpClientFactory ClientFactory
 @inject NavigationManager NavigationManager
 @inject ListChatsAll ListChatsAl
+@inject ListChatsAll ListChatsAl
 
 <style>
     /* styles.css (или другой файл, куда вы помещаете свои стили) */
@@ -72,7 +73,7 @@
 
     private void Friends()
     {
-        // NavigationManager.NavigateTo($"/Friends/{users}");
+        NavigationManager.NavigateTo($"/Friends/{users}");
     }
 }
 

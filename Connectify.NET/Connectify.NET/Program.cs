@@ -21,7 +21,6 @@ namespace Connectify.NET
             builder.Services.AddScoped<Connectify.NET.Components.Pages.GroupChats>();
             builder.Services.AddScoped<Connectify.NET.Components.Pages.ListChatsAll>();
             builder.Services.AddScoped<Connectify.NET.Components.Pages.Friends>();
-
             builder.Services.AddScoped<Component>();
 
             var app = builder.Build();

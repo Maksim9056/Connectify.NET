@@ -11,6 +11,20 @@
  *@
 @inject NavigationManager NavigationManager
 <style>
+
+    .user-info b {
+        margin-right: 8px;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .chat-messages {
+        max-height: 60vh; /* Максимальная высота области сообщений, соответствующая 60% высоты видимой области */
+        overflow-y: auto;
+        margin-bottom: 20px;
+        padding-right: 10px;
+    }
+    /* Основные стили */
     .chat-header {
         display: flex;
         justify-content: center;
@@ -41,12 +55,21 @@
         justify-content: center;
         align-items: flex-start;
         height: 100vh;
-        padding: 10px 10px 50px;
+        padding: 10px;
         box-sizing: border-box;
     }
 
-
-
+    .chat-container {
+        background-color: #ffffff;
+        width: 100%;
+        max-width: 1000px; /* Максимальная ширина контейнера чата */
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        box-sizing: border-box;
+        overflow: hidden; /* Скрытие излишнего содержимого чата за пределами контейнера */
+    }
+/* 
     .chat-container {
         background-color: #ffffff;
         width: 100%;
@@ -54,23 +77,19 @@
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         box-sizing: border-box;
         overflow: hidden;
-    }
+    } */
 
     /* Стили для списка групп чата */
+    .group-list-container {
+        /*         border: 1px solid #ccc;
+     */ /*         overflow-y: auto;
+     */
+        margin: 0 auto;
+    }
+
     .group-list {
         padding: 10px;
     }
-    /* Стили для контейнера списка групп чата */
-    .group-list-container {
-        border: 1px solid #ccc;
-/*         border-radius: 5px;
- */        overflow-y: auto;
-/*         max-height: 300px;
- */        margin: 0 auto;
-        position: relative;
-        width: 80%;
-    }
-
 
     /* Стили для кнопок группы чата и создания группы */
     .group-button, .create-group-button {
@@ -90,18 +109,17 @@
         text-overflow: ellipsis;
     }
 
-        /* Изменение цвета кнопок при наведении курсора */
         .group-button:hover, .create-group-button:hover {
             background-color: #0056b3;
         }
 
-    /* Стили для выравнивания заголовка "Чаты" и кнопки "Создать группу" */
+    /* Стили для заголовка "Чаты" и кнопки "Создать группу" */
     .header-container {
         display: flex;
         align-items: center;
         margin: 0 auto;
         position: absolute;
-        top: 0; /* Изменение положения заголовка */
+        top: 0;
         left: 50%;
         transform: translateX(-50%);
         z-index: 1;
@@ -112,15 +130,23 @@
     }
 
     h1 {
-        margin: 0 auto;
+        margin: 0;
     }
 
-    /* Стили для группы чата */
+    .chat-message {
+        background-color: #f0f0f0;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 12px;
+    }
+    /*     /* Стили для группы чата */
     .chat-group {
         border: 1px solid #ddd;
         border-radius: 5px;
         margin-bottom: 10px;
     }
+
+    */
 </style>
 @* <div class="header-container">
     <h1>Чаты</h1>
@@ -131,10 +157,11 @@
     <div class="chat-container">
         <div class="chat-header">
             <h2 class="chat-title">Чаты</h2>
+            <Bottungoback></Bottungoback>
             <button class="another-button" @onclick="IncrementCount">Создать группу</button>
         </div>
 
-        <div class="group-list-container" style="margin: 0 auto; padding-right: 10px; margin-right: 10px; width: 80%;">
+        <div class="chat-messages">
             @try
             {
                 @if (users == null || users.Group == null || !users.Group.Any())
@@ -146,11 +173,13 @@
                     <div class="group-list">
                         @foreach (var group in users.Group)
                         {
-                            <div class="chat-group">
-                                <!-- Обновленные стили для квадратика -->
-                                <button class="group-button" @onclick="() => OpenGroupChat(group)" style="padding: 5px; margin: 5px; border-radius: 5px;">
-                                    @group.GroupName <!-- Отображение имени группы -->
-                                </button>
+                            <div class="user-info">
+                                <div class="chat-message ">
+                                    <!-- Обновленные стили для квадратика -->
+                                    <button class="group-button" @onclick="() => OpenGroupChat(group)" style="align-items: center;padding: 5px; margin: 5px; border-radius: 5px;">
+                                        @group.GroupName <!-- Отображение имени группы -->
+                                    </button>
+                                </div>
                             </div>
                         }
                     </div>
@@ -163,7 +192,8 @@
         </div>
     </div>
 </div>
-
+@* bobreczovm@inbox.ru
+ *@
 
 @code {
 
@@ -192,9 +222,9 @@
     {
         try
         {
-            if(users == null)
+            if (users == null)
             {
-                if(ListChatsAl == null)
+                if (ListChatsAl == null)
                 {
 
                 }

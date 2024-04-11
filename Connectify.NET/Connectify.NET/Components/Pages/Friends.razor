@@ -1,4 +1,4 @@
-﻿@page "/Friends/{users}"
+﻿@page "/Friends/"
 @using APIConnectify.NET.Models
 @rendermode InteractiveServer
 @using System.Net.Http.Json
@@ -6,20 +6,50 @@
 @using Newtonsoft.Json
 @using static System.Reflection.Metadata.BlobBuilder
 @inject IHttpClientFactory ClientFactory
+@inject Friends Friend
+
+
+@foreach (var user in Friens)
+{
+    <div>
+        <label>@user.Username <input type="checkbox" @onchange="@(e => ToggleSelection(user.Id))" /></label>
+    </div>
+}
 
 @code {
     HttpClient httpClient = null!;
     List<Users> Friens = new List<Users>();
-
-    Users users { get; set; }
+    [Parameter]
+    public   Users users { get; set; }
+    List<int> FriendsSelect = new List<int>();
 
     string url = "https://localhost:7086/api/Users/GET";
 
     protected override async Task OnInitializedAsync()
     {
-        httpClient = ClientFactory.CreateClient();
-        httpClient.BaseAddress = new Uri(url);
-        await LoadData();
+        try
+        {
+            if (Friend == null)
+            {
+
+            }
+            else
+            {
+
+                users = Friend.users;
+                httpClient = ClientFactory.CreateClient();
+                httpClient.BaseAddress = new Uri(url);
+                await LoadData();
+            }
+            StateHasChanged();
+
+        }
+        catch (Exception ex)
+        {
+            // Handle exception
+            Console.WriteLine("An error occurred: " + ex.Message);
+        }
+    
     }
     async Task LoadData()
     {
@@ -28,6 +58,27 @@
             httpClient = ClientFactory.CreateClient();
             httpClient.BaseAddress = new Uri(url);
             Friens = await httpClient.GetFromJsonAsync<List<Users>>(httpClient.BaseAddress);
+        }
+        catch
+        {
+
+        }
+    }
+    private void ToggleSelection(int user)
+    {
+        try
+        {
+
+
+
+            if (FriendsSelect.Contains(user))
+            {
+                FriendsSelect.Remove(user); // Если уже выбран, удаляем из списка выбранных
+            }
+            else
+            {
+                FriendsSelect.Add(user); // Если не выбран, добавляем в список выбранных
+            }
         }
         catch
         {
