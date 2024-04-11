@@ -126,8 +126,8 @@
             @if (group != null)
             {
                 <div class="chat-header">
-                    <h1 class="chat-title">@group.GroupName</h1>
                     <button onclick="goBack()" class="return-button">Назад</button>
+                      <h1 class="chat-title">@group.GroupName</h1>
                     <button @onclick="OpenAddUserModal" class="another-button">Добавить собеседника</button>
                 </div>
             }
