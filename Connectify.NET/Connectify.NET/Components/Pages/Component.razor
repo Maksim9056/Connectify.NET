@@ -8,7 +8,7 @@
 @inject IHttpClientFactory ClientFactory
 @inject NavigationManager NavigationManager
 @inject ListChatsAll ListChatsAl
-@inject ListChatsAll ListChatsAl
+@inject Friends Friend
 
 <style>
     /* styles.css (или другой файл, куда вы помещаете свои стили) */
@@ -51,29 +51,71 @@
     [Parameter]
     public Users users { get; set; }
 
+    List<Group> groups = new List<Group>();
+
+    HttpClient httpClient = null!;
+
+
+    string url = "https://localhost:7086/api/UsersControllers/group";
     protected override void OnInitialized()
     {
-        if (userStateService.users == null)
+        try
         {
+            if (userStateService.users == null)
+            {
 
+            }
+            else
+            {
+                users = userStateService.users;
+
+            }
         }
-        else
+        catch (Exception)
         {
-            users = userStateService.users;
 
         }
 
     }
-    private void IncrementCount()
+
+
+    private async Task IncrementCount()
     {
-        ListChatsAl.users = users;
-        NavigationManager.NavigateTo($"/ListChatsAll/");
+        try
+        {
+            ListChatsAl.users = users;
+            httpClient = ClientFactory.CreateClient();
+            httpClient.BaseAddress = new Uri(url + users.Id);
+            groups = await httpClient.GetFromJsonAsync<List<Group>>(httpClient.BaseAddress);
+
+            ListChatsAl.groups = groups;
+
+            NavigationManager.NavigateTo($"/ListChatsAll/");
+        }
+        catch (Exception)
+        {
+            if (groups.Count() == 0)
+            {
+                ListChatsAl.groups = groups;
+                NavigationManager.NavigateTo($"/ListChatsAll/");
+            }
+        }
     }
 
 
     private void Friends()
     {
-        NavigationManager.NavigateTo($"/Friends/{users}");
+        try
+        {
+
+            Friend.users = users;
+
+            NavigationManager.NavigateTo($"/Friends/");
+        }
+        catch (Exception)
+        {
+
+        }
     }
 }
 

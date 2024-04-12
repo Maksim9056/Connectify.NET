@@ -10,16 +10,18 @@ namespace APIConnectify.NET.Models
 
         public int Id { get; set; }
         //[Required]
-        public Users FriendId { get; set; }
+        public int  UserId { get; set; }
+        public int Friend { get; set; }
 
         public Friends()
         {
 
         }
-        public Friends(int id, Users friendId)
+        public Friends(int id, int userId, int friend)
         {
             Id = id;
-            FriendId = friendId;
+            UserId = userId;
+            Friend = friend;
         }
      
     }

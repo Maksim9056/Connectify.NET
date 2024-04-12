@@ -25,14 +25,14 @@ namespace APIConnectify.NET.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Friends>>> GetFriend()
         {
-            return await _context.Friends.Include(u => u.FriendId).ToListAsync();
+            return await _context.Friends.ToListAsync();
         }
 
         // GET: api/FriendsControllers/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Friends>> GetFriends(int id)
         {
-            var friends = await _context.Friends.Include(u => u.FriendId).FirstOrDefaultAsync(u=>u.Id ==id);
+            var friends = await _context.Friends.FirstOrDefaultAsync(u=>u.Id ==id);
 
             if (friends == null)
             {
@@ -76,19 +76,39 @@ namespace APIConnectify.NET.Controllers
         // POST: api/FriendsControllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Friends>> PostFriends(Friends friends)
+        public async Task<ActionResult<Friends>> PostFriends(List<APIConnectify.NET.Models.Friends> friends)
         {
-            _context.Friends.Add(friends);
-            await _context.SaveChangesAsync();
+            Friends friends1 = null;
+            foreach(var friend in friends)
+            {
+                _context.Friends.Add(friend);
+                await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetFriends", new { id = friends.Id }, friends);
+                var friends2 = await _context.Friends.FirstOrDefaultAsync(u =>u.UserId == friend.UserId && u.Friend== friend.Friend);
+
+                friends1 =  friend;
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == friend.UserId);
+
+                 user.Friends.Add(friends2.Id);
+                _context.Entry(user).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+                var user1 = await _context.Users.FirstOrDefaultAsync(u => u.Id == friend.Friend);
+
+                user1.Friends.Add(friends2.Id);
+
+                _context.Entry(user1).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+            }
+       
+
+            return CreatedAtAction("GetFriends", new { id = friends1.Id }, friends1);
         }
 
         // DELETE: api/FriendsControllers/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteFriends(int id)
         {
-            var friends = await _context.Friends.Include(u => u.FriendId).FirstOrDefaultAsync(u=>u.Id ==id);
+            var friends = await _context.Friends.FirstOrDefaultAsync(u=>u.Id ==id);
             if (friends == null)
             {
                 return NotFound();
@@ -102,7 +122,7 @@ namespace APIConnectify.NET.Controllers
 
         private bool FriendsExists(int id)
         {
-            return _context.Friends.Include(u => u.FriendId).Any(e => e.Id == id);
+            return _context.Friends.Any(e => e.Id == id);
         }
     }
 }

@@ -99,8 +99,8 @@
                 }
                 else
                 {
-                    List<Group> groups = new List<Group>();
-                    List<APIConnectify.NET.Models.Friends> friends = new List<APIConnectify.NET.Models.Friends>();
+                    List<int> groups = new List<int>();
+                    List<int> friends = new List<int>();
 
                     Users users = new Users(0, Username, Password, Email, Surname, Phone, Files, groups, friends);
                     string str =    json(users, 2);

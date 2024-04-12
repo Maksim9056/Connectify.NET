@@ -8,22 +8,43 @@
 @inject IHttpClientFactory ClientFactory
 @inject Friends Friend
 
-
-@foreach (var user in Friens)
+<h2>Выберите пользователей для добавления друзья</h2>
+@if (users == null && Friens == null)
 {
-    <div>
-        <label>@user.Username <input type="checkbox" @onchange="@(e => ToggleSelection(user.Id))" /></label>
-    </div>
+    
+}
+else
+{
+    
+    @foreach (var user in Friens)
+    {
+        if (users.Email == user.Email)
+        {
+        }
+        else
+        {
+            <div>
+                <label>@user.Username <input type="checkbox" @onchange="@(e => ToggleSelection(user.Id))" /></label>
+            </div>
+        }
+
+    }
 }
 
+
+<div>
+    <button class="friends-button" @onclick="IncrementCount">Добавить друга</button>
+</div>
 @code {
+
+
     HttpClient httpClient = null!;
     List<Users> Friens = new List<Users>();
     [Parameter]
     public   Users users { get; set; }
-    List<int> FriendsSelect = new List<int>();
-
-    string url = "https://localhost:7086/api/Users/GET";
+    List<APIConnectify.NET.Models.Friends> FriendsSelect = new List<APIConnectify.NET.Models.Friends>();
+    string urlFriends = "https://localhost:7086/api/FriendsControllers";
+    string url = "https://localhost:7086/api/UsersControllers";
 
     protected override async Task OnInitializedAsync()
     {
@@ -35,11 +56,18 @@
             }
             else
             {
+                if (Friend.users == null)
+                {
 
-                users = Friend.users;
-                httpClient = ClientFactory.CreateClient();
-                httpClient.BaseAddress = new Uri(url);
-                await LoadData();
+                }
+                else
+                {
+                    users = Friend.users;
+                    httpClient = ClientFactory.CreateClient();
+                    httpClient.BaseAddress = new Uri(url);
+                    await LoadData();
+                }
+             
             }
             StateHasChanged();
 
@@ -49,8 +77,29 @@
             // Handle exception
             Console.WriteLine("An error occurred: " + ex.Message);
         }
-    
     }
+
+    private async Task IncrementCount()
+    {
+        try
+        {
+            httpClient = ClientFactory.CreateClient();
+            httpClient.BaseAddress = new Uri(urlFriends);
+            string jsonString = JsonConvert.SerializeObject(FriendsSelect);
+            HttpContent content = new StringContent(jsonString, Encoding.UTF8, "application/json");
+
+            var response = await httpClient.PostAsync(urlFriends, content);
+            StateHasChanged();
+
+        }
+        catch (Exception ex)
+        {
+            
+        
+        }
+    }
+
+
     async Task LoadData()
     {
         try
@@ -58,6 +107,7 @@
             httpClient = ClientFactory.CreateClient();
             httpClient.BaseAddress = new Uri(url);
             Friens = await httpClient.GetFromJsonAsync<List<Users>>(httpClient.BaseAddress);
+
         }
         catch
         {
@@ -68,16 +118,16 @@
     {
         try
         {
+            APIConnectify.NET.Models.Friends friends = new APIConnectify.NET.Models.Friends(0, users.Id, user);
 
 
-
-            if (FriendsSelect.Contains(user))
+            if (FriendsSelect.Contains(friends))
             {
-                FriendsSelect.Remove(user); // Если уже выбран, удаляем из списка выбранных
+                FriendsSelect.Remove(friends); // Если уже выбран, удаляем из списка выбранных
             }
             else
             {
-                FriendsSelect.Add(user); // Если не выбран, добавляем в список выбранных
+                FriendsSelect.Add(friends); // Если не выбран, добавляем в список выбранных
             }
         }
         catch

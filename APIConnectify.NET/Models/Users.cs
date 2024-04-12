@@ -17,9 +17,9 @@ namespace APIConnectify.NET.Models
         public string Surname { get; set; }
         public string Phone { get; set; }
         public Files Picture { get; set; }
-        public List<Group> Group { get; set; } = new List<Group>();
-        public List<Friends> Friends { get; set; } = new List<Friends>();
-        public Users(int id, string username, string password, string email, string surname, string phone, Files picture, List<Group> group, List<Friends> friends)
+        public List<int> Group { get; set; } = new List<int>();
+        public List<int> Friends { get; set; } = new List<int>();
+        public Users(int id, string username, string password, string email, string surname, string phone, Files picture, List<int> group, List<int> friends)
         {
             Id = id;
             Username = username;

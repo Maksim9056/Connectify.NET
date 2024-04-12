@@ -15,7 +15,7 @@
 @try
 {
 
-    @if (users == null)
+    @if (users == null && user2 == null)
     {
         <p><em>Друзей нет</em></p>
     }
@@ -30,19 +30,18 @@
         <div>
             <label>@users.Username <input type="checkbox" @onchange="@(e => ToggleSelection(users.Id))" /></label>
         </div>
-
-        @foreach (var user in users.Friends)
+        @foreach (var user in user2)
         {
             <div>
-                <label>@user.FriendId.Username <input type="checkbox" @onchange="@(e => ToggleSelection(user.FriendId.Id))" /></label>
+                <label>@user.Username <input type="checkbox" @onchange="@(e => ToggleSelection(user.Id))" /></label>
             </div>
         }
 
     }
 
-<button class="btn btn-primary" @onclick="IncrementCount">Создать</button>
+    <button class="btn btn-primary" @onclick="IncrementCount">Создать</button>
 }
-catch(Exception)
+catch (Exception)
 {
     <p><em>Ошибка !!</em></p>
 
@@ -54,24 +53,36 @@ catch(Exception)
     HttpClient httpClient = null!;
 
     [Parameter]
-    public    Users users { get; set; }//Пользователь который Авторизировался
+    public Users users { get; set; }//Пользователь который Авторизировался
     public string НазваниеГруппы { get; set; }
     string url = "https://localhost:7086/api/GroupsControllers/POST";
+    string urlUser = "https://localhost:7086/api/UsersControllers/friend";
 
     List<int> FriendsSelect = new List<int>();
-
+    List<Users> user2;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            if(GroupAd == null)
+            if (GroupAd == null)
             {
 
             }
             else
             {
-                users = GroupAd.users;
+
+                if (GroupAd.users == null)
+                {
+
+                }
+                else
+                {
+                    users = GroupAd.users;
+
+                    user2 = new List<Users>();
+                    await LoadData(users.Id);
+                }
 
             }
 
@@ -85,14 +96,25 @@ catch(Exception)
         }
     }
 
+    async Task LoadData(int id)
+    {
+        try
+        {
+            httpClient = ClientFactory.CreateClient();
+            httpClient.BaseAddress = new Uri(urlUser + id.ToString());
+            user2 = await httpClient.GetFromJsonAsync<List<Users>>(httpClient.BaseAddress);
+
+        }
+        catch
+        {
+
+        }
+    }
 
     private void ToggleSelection(int user)
     {
         try
         {
-
-
-
             if (FriendsSelect.Contains(user))
             {
                 FriendsSelect.Remove(user); // Если уже выбран, удаляем из списка выбранных
@@ -102,7 +124,7 @@ catch(Exception)
                 FriendsSelect.Add(user); // Если не выбран, добавляем в список выбранных
             }
         }
-        catch
+        catch (Exception)
         {
 
         }
@@ -112,7 +134,6 @@ catch(Exception)
     {
         try
         {
-
             if (!string.IsNullOrEmpty(НазваниеГруппы) && FriendsSelect.Count() > 0)
             {
                 Group group = new Group { Id = 0, GroupName = НазваниеГруппы, Participants = FriendsSelect };
@@ -123,8 +144,8 @@ catch(Exception)
                 string jsonString = JsonConvert.SerializeObject(group);
                 HttpContent content = new StringContent(jsonString, Encoding.UTF8, "application/json");
 
-                var response = await httpClient.PostAsync(url , content);
-                //Исправлять надо 
+                var response = await httpClient.PostAsync(url, content);
+                //Исправлять надо
                 ListChatsAl.users = users;
                 // kod = response.Content.Headers;
                 NavigationManager.NavigateTo($"/ListChatsAll/");
@@ -132,13 +153,13 @@ catch(Exception)
             }
 
         }
-        catch(Exception )
+        catch (Exception)
         {
-            
+
         }
     }
 
 
 
-   
+
 }

@@ -42,7 +42,7 @@ namespace APIConnectify.NET.Controllers
             GroupUsers sQ = new GroupUsers();
             for (int i = 0; i< groupsChats.Count(); i++)
             {
-                 var user = await _context.Users.Include(u => u.Group).Include(u => u.Friends).Include(u => u.Picture).FirstOrDefaultAsync(u => u.Id == groupsChats[i].Users);
+                 var user = await _context.Users.Include(u => u.Picture).FirstOrDefaultAsync(u => u.Id == groupsChats[i].Users);
                  
                 
                 var @group = await _context.Group.FirstOrDefaultAsync(u => u.Id == groupsChats[i].Group);
@@ -51,7 +51,7 @@ namespace APIConnectify.NET.Controllers
                     foreach (var s in @group.Participants)
                     {
                         Users users1 = new Users();
-                        Users users = await _context.Users.Include(u => u.Group).Include(u => u.Friends).Include(u => u.Picture).FirstOrDefaultAsync(u => u.Id == s);
+                        Users users = await _context.Users.Include(u => u.Picture).FirstOrDefaultAsync(u => u.Id == s);
 
                         if (users == null)
                         {

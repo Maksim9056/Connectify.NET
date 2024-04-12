@@ -81,17 +81,18 @@ namespace APIConnectify.NET.Controllers
         {
             _context.Group.Add(@group);
             await _context.SaveChangesAsync();
+              var s = _context.Group.FirstOrDefault(u =>u.GroupName == @group.GroupName && u.Participants == @group.Participants);
 
             foreach (var id in @group.Participants)
             {
-                var users =   await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
-                users.Group.Add(@group);
+                var users =   await _context.Users.Include(u =>u.Picture).FirstOrDefaultAsync(u => u.Id == id);
+                users.Group.Add(s.Id);
                 _context.Entry(users).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
 
             }
 
-            return CreatedAtAction("GetGroup", new { id = @group.Id }, @group);
+            return CreatedAtAction("GetGroup", new { id = s.Id }, s);
         }
 
 

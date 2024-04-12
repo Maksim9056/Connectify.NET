@@ -26,21 +26,83 @@ namespace APIConnectify.NET.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Users>>> GetUsers()
         {
-            return await _context.Users.Include(u => u.Group) // Assuming Group is a direct navigation property      .Include(u => u.Friends)
+            return await _context.Users // Assuming Group is a direct navigation property      .Include(u => u.Friends)
                   .Include(u => u.Picture).ToListAsync();
         }
 
         // GET: api/UsersControllers/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Users>> GetUsers(int id)
+        public async Task<ActionResult<List<Users>>> GetUsers(int id)
         {
-            var users = await _context.Users.Include(u => u.Group).Include(u => u.Friends).Include(u => u.Picture).FirstOrDefaultAsync(u => u.Id == id);
+            List<Users> users1 = new List<Users>();
+            var users = await _context.Users.Include(u => u.Picture).FirstOrDefaultAsync(u => u.Id == id);
             if (users == null)
             {
                 return NotFound();
             }
+            foreach (var user in users.Friends)
+            {
+                var users2 = await _context.Users.Include(u => u.Picture).FirstOrDefaultAsync(u => u.Id == id);
+                users1.Add(users2);
+            }
+          
 
-            return users;
+            return users1;
+        }
+
+        // GET: api/UsersControllers/5
+        [HttpGet("group{id}")]
+        public async Task<ActionResult<List<Group>>> GetUsersGroup(int id)
+        {
+            List<Group> users1 = new List<Group>();
+            var users = await _context.Users.Include(u => u.Picture).FirstOrDefaultAsync(u => u.Id == id);
+            if (users == null)
+            {
+                return NotFound();
+            }
+            foreach (var user in users.Group)
+            {
+                var users2 = await _context.Group.FirstOrDefaultAsync(u => u.Id == user);
+                users1.Add(users2);
+            }
+
+
+            return users1;
+        }
+
+
+        // GET: api/UsersControllers/5
+        [HttpGet("friend{id}")]
+        public async Task<ActionResult<List<Users>>> GetFriends(int id)
+        {
+            List<Users> users1 = new List<Users>();
+
+            var users = await _context.Users.Include(u => u.Picture).FirstOrDefaultAsync(u => u.Id == id);
+            if (users == null)
+            {
+                return NotFound();
+            }
+            foreach (var user in users.Friends)
+            {
+
+
+                  var users3 = await _context.Friends.FirstOrDefaultAsync(u => u.Id == user);
+               
+                    var users2 = await _context.Users.Include(u => u.Picture).FirstOrDefaultAsync(u => u.Id == users3.UserId);
+                    bool d = id == users2.Id;
+                    if (d == true)
+                    {
+                        var us = await _context.Users.Include(u => u.Picture).FirstOrDefaultAsync(u => u.Id == users3.Friend);
+                        users1.Add(us);
+                    }
+                    else
+                    {
+                        users1.Add(users2);
+
+                    }
+                
+            }
+            return users1;
         }
 
         // PUT: api/UsersControllers/5
@@ -89,7 +151,7 @@ namespace APIConnectify.NET.Controllers
         [HttpGet("GETCheck/{mail},{password}")]
         public async Task<ActionResult<APIConnectify.NET.Models.Users>> GetUsersCheck(string mail, string password)
         {
-            var answer = await _context.Users.Include(u => u.Group).Include(u => u.Friends).Include(u => u.Picture).FirstOrDefaultAsync(u => u.Email == mail && u.Password == password);        // DELETE: api/UsersControllers/5
+            var answer = await _context.Users.Include(u => u.Picture).FirstOrDefaultAsync(u => u.Email == mail && u.Password == password);        // DELETE: api/UsersControllers/5
 
             if (answer == null)
             {
@@ -115,7 +177,7 @@ namespace APIConnectify.NET.Controllers
 
         private bool UsersExists(int id)
         {
-            return _context.Users.Include(u => u.Group).Include(u => u.Friends).Include(u => u.Picture).Any(e => e.Id == id);
+            return _context.Users.Include(u => u.Picture).Any(e => e.Id == id);
         }
     }
 }
