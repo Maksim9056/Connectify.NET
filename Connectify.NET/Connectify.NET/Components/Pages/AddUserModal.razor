@@ -10,7 +10,10 @@
             <div class="modal-body">
 
                 @ModalBody
+
+
             </div>
+          
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" @onclick="HideModal">Close</button>
                 <!-- Example save button -->
@@ -21,7 +24,8 @@
 </div>
 
 @code {
-    [Parameter] public string Title { get; set; } = "Modal Title";
+    [Parameter] public string Title { get; set; } = "Modal Title";    [Parameter] public Users Users { get; set; }
+
     private bool _showModal = false;
 
     [Parameter] public RenderFragment ModalBody { get; set; }

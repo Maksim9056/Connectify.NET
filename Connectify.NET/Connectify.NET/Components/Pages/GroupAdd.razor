@@ -8,6 +8,7 @@
 @inject IHttpClientFactory ClientFactory
 @inject GroupAdd GroupAd
 @inject ListChatsAll ListChatsAl;
+
 @* @using Newtonsoft.Json
  *@
 @inject NavigationManager NavigationManager
@@ -21,22 +22,26 @@
     }
     else
     {
-        <div style="flex-basis: calc(100% - 2.5px); margin-bottom: 5px;">
-            <label for="name">Название группы</label>
-            <input type="text" @bind="НазваниеГруппы" name="name" style="width: calc(100% - 22px);"><br>
-        </div>
-        <label>Выберите друзей</label>
 
-        <div>
-            <label>@users.Username <input type="checkbox" @onchange="@(e => ToggleSelection(users.Id))" /></label>
-        </div>
-        @foreach (var user in user2)
+        if (user2 == null)
         {
-            <div>
-                <label>@user.Username <input type="checkbox" @onchange="@(e => ToggleSelection(user.Id))" /></label>
-            </div>
-        }
 
+        }
+        else
+        {
+            if ()
+            {
+                
+            }
+
+
+            @foreach (var user in user2)
+            {
+                <div>
+                    <label>@user.Username <input type="checkbox" @onchange="@(e => ToggleSelection(user.Id))" /></label>
+                </div>
+            }
+        }
     }
 
     <button class="btn btn-primary" @onclick="IncrementCount">Создать</button>
@@ -55,8 +60,8 @@ catch (Exception)
     [Parameter]
     public Users users { get; set; }//Пользователь который Авторизировался
     public string НазваниеГруппы { get; set; }
-    string url = "https://localhost:7086/api/GroupsControllers/POST";
-    string urlUser = "https://localhost:7086/api/UsersControllers/friend";
+    string url = "http://localhost:5000/api/GroupsControllers/POST";
+    string urlUser = "http://localhost:5000/api/UsersControllers/friend";
 
     List<int> FriendsSelect = new List<int>();
     List<Users> user2;
@@ -67,7 +72,19 @@ catch (Exception)
         {
             if (GroupAd == null)
             {
+                if (users == null)
+                {
 
+                }
+                else
+                {
+
+                    user2 = new List<Users>();
+
+                    await LoadData(users.Id);
+                    StateHasChanged();
+
+                }
             }
             else
             {
@@ -86,6 +103,7 @@ catch (Exception)
 
             }
 
+            StateHasChanged();
 
 
         }

@@ -1,5 +1,6 @@
 using Connectify.NET.Client.Pages;
 using Connectify.NET.Components;
+using Microsoft.AspNetCore.Hosting;
 using System.ComponentModel;
 
 namespace Connectify.NET
@@ -24,7 +25,6 @@ namespace Connectify.NET
             builder.Services.AddScoped<Component>();
 
             var app = builder.Build();
-
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
@@ -46,6 +46,9 @@ namespace Connectify.NET
                 .AddInteractiveServerRenderMode()
                 .AddInteractiveWebAssemblyRenderMode()
                 .AddAdditionalAssemblies(typeof(Client._Imports).Assembly);
+
+            var port = 5200;
+        
 
             app.Run();
         }

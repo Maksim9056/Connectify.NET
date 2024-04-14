@@ -2,6 +2,7 @@
 @using APIConnectify.NET.Models
 @rendermode InteractiveServer
 @using System.Net.Http.Json
+@using NAudio.Wave
 @using Newtonsoft.Json
 @using System.Text
 @using static System.Reflection.Metadata.BlobBuilder
@@ -11,6 +12,9 @@
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 @using APIConnectify.NET.Models
+@using System.Net.Sockets
+@using System.Collections.Concurrent
+@using System.Net
 @inject IJSRuntime JSRuntime
 <style>
     .page-container {
@@ -119,6 +123,7 @@
     }
 </style>
 
+
 <div class="page-container">
     @try
     {
@@ -129,19 +134,29 @@
                     <button onclick="goBack()" class="return-button">Назад</button>
                       <h1 class="chat-title">@group.GroupName</h1>
                     <button @onclick="OpenAddUserModal" class="another-button">Добавить собеседника</button>
+              @*       <button @onclick="CreatesServer" class="another-button">Создать Сервер</button>
+                    <button @onclick="Connect2" class="another-button">Добавить собеседника</button>
+                    <input type="text" placeholder="Введите сервер адрес" @bind="ipaderess" class="chat-input">
+                    <input type="text" placeholder="Включить и вкл микрофон 1 и 0" @bind="numbers" class="chat-input"> *@
+
+                    <AddUserModal @ref="addUserModal" Title="Добавление собеседника">
+                        <ModalBody>
+                            <GroupAdd @ref="groupAdd" users="users" />
+
+                            <!-- Кастомизируйте содержимое модального окна по необходимости -->
+                            @*                     <p>Форма для добавления участника здесь...</p>
+                    *@
+                        </ModalBody>
+                    </AddUserModal>
                 </div>
             }
 
-            <AddUserModal @ref="addUserModal" Title="Добавление собеседника">
-                <ModalBody>
-                    <!-- Кастомизируйте содержимое модального окна по необходимости -->
-@*                     <p>Форма для добавления участника здесь...</p>
- *@                </ModalBody>
-            </AddUserModal>
 
             <div class="chat-messages">
                 @if (groupsChats != null && groupsChats.Any())
                 {
+
+              
                     @foreach (var user in groupsChats)
                     {
                         <div class="chat-message">
@@ -164,6 +179,7 @@
                 <button @onclick="SubmitForm" class="chat-send-button">Отправить</button>
             </div>
         </div>
+
     }
     catch (Exception ex)
     {
@@ -181,12 +197,18 @@
 @code
 {
 
+    public string numbers { get; set; }
+
+    public string ipaderess { get; set; }
+    public GroupAdd groupAdd;
+
     public string pub { get; set; }
     public string Название { get; set; }
     [Parameter]
     public Group group { get; set; }
     // public int id { get; set; }
-    string url = "https://localhost:7086/api/GroupsChatsControllers/";
+
+    string url = "http://localhost:5000/api/GroupsChatsControllers/";
     [Parameter]
 
     public Users users { get; set; }//Пользователь который Авторизировался
@@ -194,18 +216,19 @@
     public Users user { get; set; }//Пользователь который Авторизировался
 
     private AddUserModal addUserModal;
-
-    string urlPOST = "https://localhost:7086/api/GroupsChatsControllers";
+    string urlPOST = "http://localhost:5000/api/GroupsChatsControllers";
 
     List<GroupChatsSelect> groupsChats = new List<GroupChatsSelect>();
 
-    string urUser = "https://localhost:7086/api/UsersControllers/";
+    string urUser = "http://localhost:5000/api/UsersControllers/";
     private void OpenAddUserModal()
     {
         try
         {
+            addUserModal.Users = users;
             // Открытие модального окна добавления собеседника
             addUserModal.Show();
+
         }
         catch (Exception ex)
         {
@@ -307,6 +330,151 @@
         httpClient = ClientFactory.CreateClient();
         httpClient.BaseAddress = new Uri(url + group.Id);
         await LoadData();
+    }
+    static ConcurrentBag<NetworkStream> clientStreams = new ConcurrentBag<NetworkStream>();
+    static bool microphoneEnabled = true; // Изначально микрофон включен
+
+
+    async Task CreatesServer()
+    {
+        _ = Task.Run(() => CreateServer());
+    }
+
+     async Task CreateServer()
+    {
+        TcpListener listener = null;
+        WaveInEvent waveIn = null;
+
+        try
+        {
+            listener = new TcpListener(IPAddress.Any, 49153);
+            listener.Start();
+            Console.WriteLine("Ожидание подключений...");
+
+            waveIn = new WaveInEvent();
+            waveIn.WaveFormat = new WaveFormat(44100, 1); // 44.1kHz, моно
+            waveIn.DataAvailable += async (sender, e) =>
+            {
+                byte[] audioBuffer = microphoneEnabled ? e.Buffer : new byte[e.BytesRecorded]; // Если микрофон выключен, отправляем тишину
+                foreach (var stream in clientStreams)
+                {
+                    await stream.WriteAsync(audioBuffer, 0, audioBuffer.Length);
+                }
+            };
+
+            waveIn.StartRecording();
+
+            while (true)
+            {
+                TcpClient client = await listener.AcceptTcpClientAsync();
+                Console.WriteLine("Клиент подключен.");
+
+                NetworkStream stream = client.GetStream();
+                clientStreams.Add(stream);
+
+                _ = Task.Run(() => HandleClient(stream));
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Ошибка: " + ex.Message);
+            Console.ReadLine();
+
+        }
+        finally
+        {
+            waveIn?.StopRecording();
+            waveIn?.Dispose();
+            listener?.Stop();
+        }
+    }
+
+     async Task HandleClient(NetworkStream stream)
+    {
+        try
+        {
+            byte[] buffer = new byte[1];
+            while (true)
+            {
+                int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
+                if (bytesRead > 0)
+                {
+                    bool enableMicrophone = BitConverter.ToBoolean(buffer, 0);
+                    microphoneEnabled = enableMicrophone;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Ошибка в обработке клиента: " + ex.Message);
+        }
+        finally
+        {
+            clientStreams = new ConcurrentBag<NetworkStream>(clientStreams.Where(s => s != stream));
+            stream.Close();
+        }
+    }
+    async Task Connect2()
+    {
+        _ = Task.Run(() => Connect());
+    }
+
+     async Task Connect()
+    {
+        TcpClient client = null;
+        WaveOutEvent waveOut = null;
+        WaveStream waveStream = null;
+        try
+        {
+            Console.WriteLine("Введите адрес сервера:");
+            string serverAddress = ipaderess;
+            using (client = new TcpClient())
+            {
+                await client.ConnectAsync(serverAddress, 49153);
+                Console.WriteLine("Подключено к серверу для воспроизведения аудио.");
+
+                using (waveStream = new RawSourceWaveStream(client.GetStream(), new WaveFormat(44100, 1)))
+                {
+
+
+                    using (waveOut = new WaveOutEvent())
+                    {
+
+
+                        waveOut.Init(waveStream);
+                        waveOut.Play();
+
+                        Console.WriteLine("Воспроизведение начато. Для управления микрофоном, введите '1' для включения и '0' для выключения.");
+
+                        while (true)
+                        {
+                            string input = numbers;
+                            if (input == "1" || input == "0")
+                            {
+                                byte[] command = new byte[] { (byte)(input == "1" ? 1 : 0) };
+                                await client.GetStream().WriteAsync(command, 0, command.Length);
+                            }
+                            else
+                            {
+                                Console.WriteLine("Некорректный ввод. Введите '1' для включения и '0' для выключения микрофона.");
+                            }
+                        }
+                    }
+
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Ошибка: " + ex.Message);
+        }
+        finally
+        {
+            waveOut?.Stop();
+            waveOut?.Dispose();
+            waveStream?.Dispose();
+            client?.Close();
+        }
     }
 }
 

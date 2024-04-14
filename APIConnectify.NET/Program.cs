@@ -1,6 +1,8 @@
 
 using APIConnectify.NET.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.SqlServer;
 using Npgsql.EntityFrameworkCore.PostgreSQL;
 namespace APIConnectify.NET
@@ -26,6 +28,17 @@ namespace APIConnectify.NET
 
             builder.Services.AddDbContext<DB>(options =>
                options.UseNpgsql(builder.Configuration.GetConnectionString("APIConnectifyNETContext") ?? throw new InvalidOperationException("Connection string 'APIConnectifyNETContext' not found.")));
+            using (var serviceScope = builder.Services.BuildServiceProvider().CreateScope())
+            {
+                var migrationDbContext = serviceScope.ServiceProvider.GetRequiredService<DB>();
+
+                if (migrationDbContext.Database.GetPendingMigrations().Any())
+                {
+                    var migrator = migrationDbContext.GetService<IMigrator>();
+                    migrator.Migrate();
+                }
+            }
+
             //   builder.Services.AddDbContext<DB>(options =>
             //      options.UseNpgsql(builder.Configuration.GetConnectionString("APIConnectifyNETContext") ?? throw new InvalidOperationException("Connection string 'APIConnectifyNETContext' not found.")));
             builder.Services.AddCors(options =>

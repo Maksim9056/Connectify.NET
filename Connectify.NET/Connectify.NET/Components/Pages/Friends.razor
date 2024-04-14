@@ -43,8 +43,8 @@ else
     [Parameter]
     public   Users users { get; set; }
     List<APIConnectify.NET.Models.Friends> FriendsSelect = new List<APIConnectify.NET.Models.Friends>();
-    string urlFriends = "https://localhost:7086/api/FriendsControllers";
-    string url = "https://localhost:7086/api/UsersControllers";
+    string urlFriends = "http://localhost:5000/api/FriendsControllers";
+    string url = "http://localhost:5000/api/UsersControllers";
 
     protected override async Task OnInitializedAsync()
     {
