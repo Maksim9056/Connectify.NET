@@ -1,0 +1,119 @@
+﻿@page "/call"
+@rendermode InteractiveServer
+
+<h1>Аудио / Видео звонок</h1>
+
+<div>
+    <video id="localVideo" autoplay muted style="width: 320px; height: 240px;"></video>
+    <video id="remoteVideo" autoplay style="width: 320px; height: 240px;"></video>
+</div>
+
+<div>
+    <button onclick="startCall()">Вызвать</button>
+    <button onclick="endCall()">Завершить звонок</button>
+</div>
+
+<!-- Подключение скрипта для управления звонками через WebRTC и SignalR -->
+<script>
+    let peerConnection; // Объект RTCPeerConnection
+    let localStream; // Локальный медиапоток
+
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/webrtchub") // URL для подключения к SignalR хабу на сервере
+        .build();
+
+    // Обработчик события при получении предложения (offer) от другого участника
+    connection.on("ReceiveOffer", async (offer) => {
+        try {
+            if (!peerConnection) {
+                createPeerConnection();
+            }
+            // Установка удаленного описания (SDP) предложения (offer)
+            await peerConnection.setRemoteDescription(new RTCSessionDescription({ type: "offer", sdp: offer }));
+
+            // Создание ответа (answer) на полученное предложение
+            const answer = await peerConnection.createAnswer();
+            await peerConnection.setLocalDescription(answer);
+
+            // Отправка ответа (answer) на сервер через SignalR
+            await connection.invoke("SendAnswer", answer.sdp);
+
+        } catch (error) {
+            console.error('Ошибка при обработке предложения (offer):', error);
+        }
+    });
+
+    // Запуск соединения с SignalR
+    connection.start()
+        .then(() => console.log("SignalR подключен"))
+        .catch(err => console.error("Ошибка подключения к SignalR:", err));
+
+    // Функция для начала звонка
+    async function startCall() {
+        try {
+            // Получение доступа к локальному медиапотоку (видео и аудио)
+            localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+
+            // Отображение локального видео
+            const localVideo = document.getElementById('localVideo');
+            localVideo.srcObject = localStream;
+
+            createPeerConnection();
+
+            // Создание и отправка предложения (offer) на сервер через SignalR
+            const offer = await peerConnection.createOffer();
+            await peerConnection.setLocalDescription(offer);
+            await connection.invoke("SendOffer", offer.sdp);
+
+        } catch (error) {
+            console.error('Ошибка при начале звонка:', error);
+        }
+    }
+
+    // Функция для создания объекта RTCPeerConnection
+    function createPeerConnection() {
+        peerConnection = new RTCPeerConnection();
+
+        // Добавление локального медиапотока к соединению
+        localStream.getTracks().forEach(track => {
+            peerConnection.addTrack(track, localStream);
+        });
+
+        // Обработчик события при получении удаленного потока
+        peerConnection.ontrack = handleRemoteStreamAdded;
+
+        // Обработчик события при получении ICE-кандидата
+        peerConnection.onicecandidate = handleIceCandidate;
+    }
+
+    // Обработчик события при получении удаленного потока (видео и аудио) от другого участника
+    function handleRemoteStreamAdded(event) {
+        const remoteVideo = document.getElementById('remoteVideo');
+        remoteVideo.srcObject = event.streams[0];
+    }
+
+    // Обработчик события при получении ICE-кандидата (ICE candidate)
+    async function handleIceCandidate(event) {
+        if (event.candidate) {
+            // Отправка ICE-кандидата на сервер через SignalR
+            await connection.invoke("SendIceCandidate", event.candidate);
+        }
+    }
+
+    // Функция для завершения звонка
+    async function endCall() {
+        if (peerConnection) {
+            peerConnection.close();
+            peerConnection = null;
+        }
+
+        if (localStream) {
+            localStream.getTracks().forEach(track => track.stop());
+            const localVideo = document.getElementById('localVideo');
+            localVideo.srcObject = null;
+        }
+
+        const remoteVideo = document.getElementById('remoteVideo');
+        remoteVideo.srcObject = null;
+    }
+</script>

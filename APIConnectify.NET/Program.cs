@@ -28,18 +28,18 @@ namespace APIConnectify.NET
 
             builder.Services.AddDbContext<DB>(options =>
                options.UseNpgsql(builder.Configuration.GetConnectionString("APIConnectifyNETContext") ?? throw new InvalidOperationException("Connection string 'APIConnectifyNETContext' not found.")));
-            using (var serviceScope = builder.Services.BuildServiceProvider().CreateScope())
-            {
-                var migrationDbContext = serviceScope.ServiceProvider.GetRequiredService<DB>();
+            //using (var serviceScope = builder.Services.BuildServiceProvider().CreateScope())
+            //{
+            //    var migrationDbContext = serviceScope.ServiceProvider.GetRequiredService<DB>();
 
-                if (migrationDbContext.Database.GetPendingMigrations().Any())
-                {
-                    var migrator = migrationDbContext.GetService<IMigrator>();
-                    migrator.Migrate();
-                }
-            }
+            //    if (migrationDbContext.Database.GetPendingMigrations().Any())
+            //    {
+            //        var migrator = migrationDbContext.GetService<IMigrator>();
+            //        migrator.Migrate();
+            //    }
+            //}
 
-            //   builder.Services.AddDbContext<DB>(options =>
+            ////   builder.Services.AddDbContext<DB>(options =>
             //      options.UseNpgsql(builder.Configuration.GetConnectionString("APIConnectifyNETContext") ?? throw new InvalidOperationException("Connection string 'APIConnectifyNETContext' not found.")));
             builder.Services.AddCors(options =>
             {

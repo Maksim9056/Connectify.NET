@@ -7,6 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Components\Pages\call.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Components\Pages\call.js">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\APIConnectify.NET\APIConnectify.NET.csproj" />
     <ProjectReference Include="..\Connectify.NET.Client\Connectify.NET.Client.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.1" />
