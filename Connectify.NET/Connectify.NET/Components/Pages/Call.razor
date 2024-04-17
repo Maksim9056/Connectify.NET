@@ -1,41 +1,39 @@
 ﻿@page "/call"
-@rendermode InteractiveServer
-
+@rendermode  InteractiveServer
 <h1>Аудио / Видео звонок</h1>
 
 <div>
-    <video id="localVideo" autoplay muted style="width: 320px; height: 240px;"></video>
+    <video id="localVideo" style="display: none;"></video>
     <video id="remoteVideo" autoplay style="width: 320px; height: 240px;"></video>
 </div>
 
 <div>
-    <button onclick="startCall()">Вызвать</button>
+    <button onclick="joinCall()">Присоединиться к звонку</button>
     <button onclick="endCall()">Завершить звонок</button>
+    <p id="callStatus">Статус: ожидание</p>
+    <p>Поделитесь ссылкой с другими для присоединения:</p>
+    <input type="text" id="callLink" readonly style="width: 300px;">
 </div>
 
-<!-- Подключение скрипта для управления звонками через WebRTC и SignalR -->
 <script>
-    let peerConnection; // Объект RTCPeerConnection
-    let localStream; // Локальный медиапоток
+    let peerConnection;
+    let localStream;
+    let callId;
 
     const connection = new signalR.HubConnectionBuilder()
-        .withUrl("/webrtchub") // URL для подключения к SignalR хабу на сервере
+        .withUrl("/webrtchub")
         .build();
 
-    // Обработчик события при получении предложения (offer) от другого участника
     connection.on("ReceiveOffer", async (offer) => {
         try {
             if (!peerConnection) {
                 createPeerConnection();
             }
-            // Установка удаленного описания (SDP) предложения (offer)
             await peerConnection.setRemoteDescription(new RTCSessionDescription({ type: "offer", sdp: offer }));
 
-            // Создание ответа (answer) на полученное предложение
             const answer = await peerConnection.createAnswer();
             await peerConnection.setLocalDescription(answer);
 
-            // Отправка ответа (answer) на сервер через SignalR
             await connection.invoke("SendAnswer", answer.sdp);
 
         } catch (error) {
@@ -43,64 +41,77 @@
         }
     });
 
-    // Запуск соединения с SignalR
-    connection.start()
-        .then(() => console.log("SignalR подключен"))
-        .catch(err => console.error("Ошибка подключения к SignalR:", err));
+    connection.on("UpdateCallStatus", (status) => {
+        document.getElementById('callStatus').innerText = `Статус: ${status}`;
+    });
 
-    // Функция для начала звонка
-    async function startCall() {
+    connection.on("ReceiveCallId", (id) => {
+        callId = id;
+        document.getElementById('callLink').value = `${window.location.origin}/join/${id}`;
+    });
+
+    async function joinCall() {
         try {
-            // Получение доступа к локальному медиапотоку (видео и аудио)
-            localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            const constraints = { audio: true, video: false }; // Запрашиваем только доступ к микрофону
 
-            // Отображение локального видео
-            const localVideo = document.getElementById('localVideo');
-            localVideo.srcObject = localStream;
+            // Проверяем доступность микрофона
+            const mediaDevices = navigator.mediaDevices;
+            if (!mediaDevices || !mediaDevices.getUserMedia) {
+                alert('Ваш браузер не поддерживает функцию getUserMedia для доступа к медиаустройствам.');
+                return;
+            }
 
+            const stream = await mediaDevices.getUserMedia(constraints);
+            const hasAudio = stream.getAudioTracks().length > 0;
+
+            if (!hasAudio) {
+                alert('У вас отсутствует микрофон. Невозможно присоединиться к звонку.');
+                return;
+            }
+
+            localStream = stream;
             createPeerConnection();
 
-            // Создание и отправка предложения (offer) на сервер через SignalR
             const offer = await peerConnection.createOffer();
             await peerConnection.setLocalDescription(offer);
-            await connection.invoke("SendOffer", offer.sdp);
+
+            // Отправляем оффер и получаем идентификатор звонка
+            const response = await connection.invoke("SendOffer", offer.sdp);
+            callId = response.callId;
+            document.getElementById('callLink').value = `${window.location.origin}/join/${callId}`;
+
+            document.getElementById('callStatus').innerText = 'Статус: в звонке (прослушивание)';
 
         } catch (error) {
-            console.error('Ошибка при начале звонка:', error);
+            console.error('Ошибка при присоединении к звонку:', error);
+            alert('Невозможно присоединиться к звонку. Проверьте доступ к микрофону.');
         }
     }
 
-    // Функция для создания объекта RTCPeerConnection
     function createPeerConnection() {
         peerConnection = new RTCPeerConnection();
 
-        // Добавление локального медиапотока к соединению
-        localStream.getTracks().forEach(track => {
-            peerConnection.addTrack(track, localStream);
-        });
+        if (localStream) {
+            localStream.getTracks().forEach(track => {
+                peerConnection.addTrack(track, localStream);
+            });
+        }
 
-        // Обработчик события при получении удаленного потока
         peerConnection.ontrack = handleRemoteStreamAdded;
-
-        // Обработчик события при получении ICE-кандидата
         peerConnection.onicecandidate = handleIceCandidate;
     }
 
-    // Обработчик события при получении удаленного потока (видео и аудио) от другого участника
     function handleRemoteStreamAdded(event) {
         const remoteVideo = document.getElementById('remoteVideo');
         remoteVideo.srcObject = event.streams[0];
     }
 
-    // Обработчик события при получении ICE-кандидата (ICE candidate)
     async function handleIceCandidate(event) {
         if (event.candidate) {
-            // Отправка ICE-кандидата на сервер через SignalR
-            await connection.invoke("SendIceCandidate", event.candidate);
+            await connection.invoke("SendIceCandidate", event.candidate, callId);
         }
     }
 
-    // Функция для завершения звонка
     async function endCall() {
         if (peerConnection) {
             peerConnection.close();
@@ -109,11 +120,18 @@
 
         if (localStream) {
             localStream.getTracks().forEach(track => track.stop());
-            const localVideo = document.getElementById('localVideo');
-            localVideo.srcObject = null;
         }
 
         const remoteVideo = document.getElementById('remoteVideo');
         remoteVideo.srcObject = null;
+
+        document.getElementById('callStatus').innerText = 'Статус: завершен';
     }
+
+    connection.start()
+        .then(() => {
+            console.log("SignalR подключен");
+            connection.invoke("GetCurrentCallStatus");
+        })
+        .catch(err => console.error("Ошибка подключения к SignalR:", err));
 </script>
