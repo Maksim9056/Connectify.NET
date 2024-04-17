@@ -131,7 +131,8 @@
             @if (group != null)
             {
                 <div class="chat-header">
-                    <button onclick="goBack()" class="return-button">Назад</button>
+                    <Bottungoback></Bottungoback>
+
                       <h1 class="chat-title">@group.GroupName</h1>
                     <button @onclick="OpenAddUserModal" class="another-button">Добавить собеседника</button>
               @*       <button @onclick="CreatesServer" class="another-button">Создать Сервер</button>
@@ -186,13 +187,14 @@
         <p><em>Ошибка !!</em></p>
     }
 </div>
+<script src="call.js"></script>
 
-<script>
+@* <script>
     // JavaScript функция для возврата на предыдущую страницу
     function goBack() {
         window.history.back(); // Используем метод window.history.back() для перехода назад
     }
-</script>
+</script> *@
 
 @code
 {
