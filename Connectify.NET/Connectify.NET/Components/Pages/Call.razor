@@ -11,6 +11,7 @@
     <video id="cameraPreview" width="320" height="240"></video>
     <video id="remoteVideo" autoplay onplaying="createPeerConnection" style="width: 320px; height: 240px;"></video>
     <video id="screenPreview" width="640" height="480"></video>
+    <video id="cameraPreview" width="320" height="240"></video>
 
 </div>
 
@@ -21,6 +22,7 @@
     <button @onclick="StartRecording">Микрофон</button>
     <button @onclick="StartCamera">Start Camera</button>
     <button @onclick="StopCamera">Stop Camera</button>
+
     <button @onclick="StartScreenSharing">Start Screen Sharing</button>
     <button @onclick="StopScreenSharing">Stop Screen Sharing</button>
 
@@ -32,12 +34,33 @@
 @code {
 
     private Func<Task> recordingFunc; // Функция для управления записью
- 
+    private IJSObjectReference videoElement;
+    private async Task StartCamera()
+    {
+        try
+        {
+            if (videoElement == null)
+            {
+                videoElement = await JSRuntime.InvokeAsync<IJSObjectReference>("document.getElementById", "cameraPreview");
+            }
+
+            await JSRuntime.InvokeVoidAsync("startCamera", videoElement);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error starting camera: " + ex.Message);
+        }
+    }
+
     private async Task StopCamera()
     {
         try
         {
-            var videoElement = await JSRuntime.InvokeAsync<IJSObjectReference>("getElementById", "cameraPreview");
+            if (videoElement == null)
+            {
+                videoElement = await JSRuntime.InvokeAsync<IJSObjectReference>("document.getElementById", "cameraPreview");
+            }
+
             await JSRuntime.InvokeVoidAsync("stopCamera", videoElement);
         }
         catch (Exception ex)
@@ -62,18 +85,7 @@
             Console.WriteLine("Error starting recording: " + ex.Message);
         }
     }
-    private async Task StartCamera()
-    {
-        try
-        {
-            var videoElement = await JSRuntime.InvokeAsync<IJSObjectReference>("getElementById", "cameraPreview");
-            await JSRuntime.InvokeVoidAsync("startCamera", videoElement);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("Error starting camera: " + ex.Message);
-        }
-    }
+
 
     async Task JoinCall()
     {
