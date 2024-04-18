@@ -17,6 +17,7 @@ namespace APIConnectify.NET.Data
         public DbSet<Friends> Friends { get; set; } = null!;
         public DbSet<Files> Files { get; set; } = null!;
     }
+
     public class Settings
     {
         public int KEYSQL { get; set; }

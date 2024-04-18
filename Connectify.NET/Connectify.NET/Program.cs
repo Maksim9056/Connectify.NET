@@ -1,4 +1,3 @@
-using Connectify.NET.Client.Pages;
 using Connectify.NET.Components;
 using Microsoft.AspNetCore.Hosting;
 using System.ComponentModel;
@@ -23,7 +22,16 @@ namespace Connectify.NET
             builder.Services.AddScoped<Connectify.NET.Components.Pages.ListChatsAll>();
             builder.Services.AddScoped<Connectify.NET.Components.Pages.Friends>();
             builder.Services.AddScoped<Component>();
-
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll",
+                    builder =>
+                    {
+                        builder.AllowAnyOrigin()
+                               .AllowAnyMethod()
+                               .AllowAnyHeader().WithHeaders();
+                    });
+            });
             var app = builder.Build();
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -41,6 +49,8 @@ namespace Connectify.NET
             app.UseHttpsRedirection();
 
             app.UseAntiforgery();
+
+            app.UseCors("AllowAll");
 
             app.MapRazorComponents<App>()
                 .AddInteractiveServerRenderMode()

@@ -1,29 +1,71 @@
 ﻿@page "/call"
-@rendermode  InteractiveServer
+@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+@using Microsoft.AspNetCore.Components.Web
+
 <h1>Аудио / Видео звонок</h1>
 
 <div>
-    <video id="localVideo" style="display: none;"></video>
-    <video id="remoteVideo" autoplay style="width: 320px; height: 240px;"></video>
+    <video id="localVideo" style="display;"></video>
+    <video id="remoteVideo" autoplay onplaying="createPeerConnection" style="width: 320px; height: 240px;"></video>
 </div>
 
 <div>
-    <button onclick="joinCall()">Присоединиться к звонку</button>
-    <button onclick="endCall()">Завершить звонок</button>
+    <button id="joinButton" @onclick="JoinCall">Присоединиться к звонку</button>
+    <button @onclick="EndCall">Завершить звонок</button>
     <p id="callStatus">Статус: ожидание</p>
     <p>Поделитесь ссылкой с другими для присоединения:</p>
     <input type="text" id="callLink" readonly style="width: 300px;">
 </div>
 
+@code {
+    async Task JoinCall()
+    {
+
+        
+        await JSRuntime.InvokeAsync<string>("joinCall"); // this calls "window.PlaySound()"
+                                                          // // Здесь будет код для присоединения к звонку
+        // // Например, запрос разрешения на использование медиа-устройств
+        await JSRuntime.InvokeAsync<string>("ReceiveOffer"); // this calls "window.PlaySound()"
+
+        // try
+        // {
+        //     // const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        //     // const localVideo = document.getElementById('localVideo') as HTMLVideoElement;
+        //     // localVideo.srcObject = stream;
+        //     // localVideo.style.display = 'block';
+
+        //     // Другой код для управления звонком
+        // }
+        // catch (err)
+        // {
+        //     console.error('Ошибка при получении доступа к медиа-устройствам:', err);
+        // }
+    }
+
+    void EndCall()
+    {
+        // Здесь будет код для завершения звонка
+        // Например, остановка медиа-потоков и обновление интерфейса
+    }
+}
+
+
 <script>
+    // Объявление переменных
     let peerConnection;
     let localStream;
     let callId;
+    let connection; // Объявление переменной connection
 
-    const connection = new signalR.HubConnectionBuilder()
-        .withUrl("/webrtchub")
+    // Создание подключения к SignalR хабу
+    connection = new signalR.HubConnectionBuilder()
+        .withUrl("https://localhost:7068/webrtchub")
         .build();
 
+    // Обработчики событий при получении сообщений от сервера
     connection.on("ReceiveOffer", async (offer) => {
         try {
             if (!peerConnection) {
@@ -50,24 +92,14 @@
         document.getElementById('callLink').value = `${window.location.origin}/join/${id}`;
     });
 
+    // Определение функции joinCall для присоединения к звонку
     async function joinCall() {
         try {
-            const constraints = { audio: true, video: false }; // Запрашиваем только доступ к микрофону
+            const constraints = { audio: true, video: true }; // Включение аудио и видео
+            // Получение доступа к медиапотоку (аудио и видео)
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
 
-            // Проверяем доступность микрофона
-            const mediaDevices = navigator.mediaDevices;
-            if (!mediaDevices || !mediaDevices.getUserMedia) {
-                alert('Ваш браузер не поддерживает функцию getUserMedia для доступа к медиаустройствам.');
-                return;
-            }
-
-            const stream = await mediaDevices.getUserMedia(constraints);
-            const hasAudio = stream.getAudioTracks().length > 0;
-
-            if (!hasAudio) {
-                alert('У вас отсутствует микрофон. Невозможно присоединиться к звонку.');
-                return;
-            }
+            const localVideos = document.getElementById('localVideo');
 
             localStream = stream;
             createPeerConnection();
@@ -75,7 +107,7 @@
             const offer = await peerConnection.createOffer();
             await peerConnection.setLocalDescription(offer);
 
-            // Отправляем оффер и получаем идентификатор звонка
+            // Отправка оффера на сервер через SignalR
             const response = await connection.invoke("SendOffer", offer.sdp);
             callId = response.callId;
             document.getElementById('callLink').value = `${window.location.origin}/join/${callId}`;
@@ -88,30 +120,39 @@
         }
     }
 
+    // Установка обработчика события на кнопку для вызова функции joinCall
+    document.getElementById('joinButton').onclick = joinCall;
+
+    // Обработка ICE кандидатов
+    function handleIceCandidate(event) {
+        if (event.candidate) {
+            connection.invoke("SendIceCandidate", event.candidate.candidate, callId);
+        }
+    }
+
+    // Создание объекта RTCPeerConnection
     function createPeerConnection() {
         peerConnection = new RTCPeerConnection();
 
+        // Добавление треков медиапотока в RTCPeerConnection
         if (localStream) {
             localStream.getTracks().forEach(track => {
                 peerConnection.addTrack(track, localStream);
             });
         }
 
+        // Обработка удаленного потока
         peerConnection.ontrack = handleRemoteStreamAdded;
         peerConnection.onicecandidate = handleIceCandidate;
     }
 
+    // Обработчик для добавления удаленного потока на видеоэлемент
     function handleRemoteStreamAdded(event) {
         const remoteVideo = document.getElementById('remoteVideo');
         remoteVideo.srcObject = event.streams[0];
     }
 
-    async function handleIceCandidate(event) {
-        if (event.candidate) {
-            await connection.invoke("SendIceCandidate", event.candidate, callId);
-        }
-    }
-
+    // Функция для завершения звонка
     async function endCall() {
         if (peerConnection) {
             peerConnection.close();
@@ -128,6 +169,7 @@
         document.getElementById('callStatus').innerText = 'Статус: завершен';
     }
 
+    // Запуск подключения к SignalR
     connection.start()
         .then(() => {
             console.log("SignalR подключен");
@@ -135,3 +177,37 @@
         })
         .catch(err => console.error("Ошибка подключения к SignalR:", err));
 </script>
+
+@* 
+<script>
+
+    import {io} from 'socket.io-client';
+
+const options = {
+  "force new connection": true,
+  reconnectionAttempts: "Infinity", // avoid having user reconnect manually in order to prevent dead clients after a server restart
+  timeout : 10000, // before connect_error and connect_timeout are emitted.
+  transports : ["websocket"]
+}
+
+const socket = io('/', options);
+
+export default socket;
+    const ACTIONS = {
+        JOIN: 'join',
+        LEAVE: 'leave',
+        SHARE_ROOMS: 'share-rooms',
+        ADD_PEER: 'add-peer',
+        REMOVE_PEER: 'remove-peer',
+        RELAY_SDP: 'relay-sdp',
+        RELAY_ICE: 'relay-ice',
+        ICE_CANDIDATE: 'ice-candidate',
+        SESSION_DESCRIPTION: 'session-description'
+    };
+
+    module.exports = ACTIONS
+
+
+
+</script>
+   *@
