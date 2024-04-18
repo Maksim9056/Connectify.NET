@@ -58,7 +58,7 @@
         {
             if (videoElement == null)
             {
-                videoElement = await JSRuntime.InvokeAsync<IJSObjectReference>("document.getElementById", "cameraPreview");
+                videoElement = await JSRuntime.InvokeAsync<IJSObjectReference>("document.getElementById", "screenPreview");
             }
 
             await JSRuntime.InvokeVoidAsync("stopCamera", videoElement);
