@@ -15,7 +15,6 @@
 @using System.Net.Sockets
 @using System.Collections.Concurrent
 @using System.Net
-@inject IJSRuntime JSRuntime
 <style>
     .page-container {
         display: flex;
@@ -133,17 +132,17 @@
                 <div class="chat-header">
                     <Bottungoback></Bottungoback>
 
-                      <h1 class="chat-title">@group.GroupName</h1>
+                    <h1 class="chat-title">@group.GroupName</h1>
                     <button @onclick="OpenAddUserModal" class="another-button">Добавить собеседника</button>
-@*                     <button @onclick="" class="another-button">Создать Сервер</button>
- *@          
+                    @*                     <button @onclick="" class="another-button">Создать Сервер</button>
+            *@
 
                     <AddUserModal @ref="addUserModal" Title="Добавление собеседника">
                         <ModalBody>
                             <GroupAdd @ref="groupAdd" users="users" />
 
                             <!-- Кастомизируйте содержимое модального окна по необходимости -->
-                   
+
                         </ModalBody>
                     </AddUserModal>
                 </div>
@@ -154,7 +153,7 @@
                 @if (groupsChats != null && groupsChats.Any())
                 {
 
-              
+
                     @foreach (var user in groupsChats)
                     {
                         <div class="chat-message">
@@ -184,8 +183,8 @@
         <p><em>Ошибка !!</em></p>
     }
 </div>
-<script src="call.js"></script>
-
+@* <script src="call.js"></script>
+ *@
 @* <script>
     // JavaScript функция для возврата на предыдущую страницу
     function goBack() {
@@ -218,6 +217,8 @@
     string urlPOST = "http://localhost:5000/api/GroupsChatsControllers";
 
     List<GroupChatsSelect> groupsChats = new List<GroupChatsSelect>();
+
+    private Timer _timer;
 
     string urUser = "http://localhost:5000/api/UsersControllers/";
     private void OpenAddUserModal()
@@ -260,14 +261,17 @@
                     httpClient.BaseAddress = new Uri(url + group.Id);
                     await LoadData();
                     update = true;
+                    _ = Task.Run(() => Normal());
                 }
             }
+
             if (update == true)
             {
                 await OnAfterRenderAsync(update);
                 StateHasChanged();
 
             }
+
         }
         catch (Exception ex)
         {
@@ -275,6 +279,7 @@
             Console.WriteLine("An error occurred: " + ex.Message);
         }
     }
+
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -286,6 +291,43 @@
         }
     }
 
+    // public async Task Norma1l()
+    // {
+    //     try
+    //     {
+            
+    //     }
+    //     catch (Exception ex)
+    //     {
+
+    //     }
+    
+    // }
+    public async Task Normal()
+    {
+        try
+        {
+            while (true)
+            {
+
+                groupsChats = await httpClient.GetFromJsonAsync<List<GroupChatsSelect>>(httpClient.BaseAddress);
+                // Обновление состояния компонента на основе загруженных данных
+                InvokeAsync(() =>
+                {
+                    groupsChats = groupsChats;
+                    StateHasChanged(); // Перерисовываем компонент после обновления данных
+                });
+                // Перерисовываем компонент после обновления данных
+
+                // await Task.Delay(TimeSpan.FromSeconds(1)); // Ждем 10 секунд перед следующим выполнением
+            }
+        }
+        
+        catch (Exception ex)
+        {
+
+        }
+    }
     async Task LoadData()
     {
         try
@@ -299,7 +341,7 @@
         }
     }
 
-    private async void SubmitForm()
+    private async Task SubmitForm()
     {
         try
         {
@@ -307,14 +349,19 @@
             {
                 byte[] bytes = new byte[10];
                 // Files fs = new Files(1, bytes);
-                GroupsChats groupsChats = new GroupsChats { Id = 0, Group = group.Id, Users = users.Id, Messages = Название, Bytes = bytes };
+                GroupsChats groupsChat = new GroupsChats { Id = 0, Group = group.Id, Users = users.Id, Messages = Название, Bytes = bytes };
                 httpClient = ClientFactory.CreateClient();
                 httpClient.BaseAddress = new Uri(urlPOST);
-                string jsonString = JsonConvert.SerializeObject(groupsChats);
+                string jsonString = JsonConvert.SerializeObject(groupsChat);
                 HttpContent content = new StringContent(jsonString, Encoding.UTF8, "application/json");
 
                 var response = await httpClient.PostAsync(url, content);
-                await Update();
+                httpClient = ClientFactory.CreateClient();
+                httpClient.BaseAddress = new Uri(url + group.Id);
+
+                groupsChats = await httpClient.GetFromJsonAsync<List<APIConnectify.NET.Models.GroupChatsSelect>>(httpClient.BaseAddress);
+
+                // await Update();
                 StateHasChanged();
             }
         }
@@ -324,17 +371,23 @@
         }
     }
 
-    public async Task Update()
-    {
-        httpClient = ClientFactory.CreateClient();
-        httpClient.BaseAddress = new Uri(url + group.Id);
-        await LoadData();
-    }
+    // public async Task Update()
+    // {
+
+
+    //     await LoadData();
+    // }
 
 }
 
-
-
+@* 
+    //    {
+    //        // Вызываем метод для загрузки/обновления данных
+    //        await LoadData();
+    //      StateHasChanged(); // Перерисовываем компонент после обновления данных
+    //    }, null, TimeSpan.Zero, TimeSpan.FromSeconds(2)); // Вызываем каждые 10 секунд
+    // }
+    // =+OnAfterRenderAsync(update); *@
 
          @*                     <p>Форма для добавления участника здесь...</p>
                     *@    @*
