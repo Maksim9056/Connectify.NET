@@ -12,6 +12,7 @@
     <video id="remoteVideo" autoplay onplaying="createPeerConnection" style="width: 320px; height: 240px;"></video>
     <video id="screenPreview" width="640" height="480"></video>
     <video id="cameraPreview" width="320" height="240"></video>
+    <video id="audioPreview" controls autoplay muted style="display: none;"></video> <!-- Добавим скрытый видео-элемент для просмотра аудио -->
 
 </div>
 
@@ -19,7 +20,8 @@
     <button id="joinButton" @onclick="JoinCall">Присоединиться к звонку</button>
     <button @onclick="EndCall">Завершить звонок</button>
     <button @onclick="EndCall">Завершить звонок</button>
-    <button @onclick="StartRecording">Микрофон</button>
+    <button @onclick="StartRecording">Запись аудио</button>
+    <button @onclick="StopRecording">Выключить микрофон</button>
     <button @onclick="StartCamera">Start Camera</button>
     <button @onclick="StopCamera">Stop Camera</button>
 
@@ -34,6 +36,37 @@
 @code {
 
     private Func<Task> recordingFunc; // Функция для управления записью
+
+
+    private async Task StartRecording()
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("startRecording");
+            Console.WriteLine("Recording started");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error starting recording: " + ex.Message);
+        }
+    }
+
+    private async Task StopRecording()
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("stopRecording");
+            Console.WriteLine("Recording stopped");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error stopping recording: " + ex.Message);
+        }
+    }
+
+
+
+
     private IJSObjectReference videoElement;
     private async Task StartCamera()
     {
@@ -69,22 +102,22 @@
         }
     }
 
-    private async Task StartRecording()
-    {
-        try
-        {
-            recordingFunc = await JSRuntime.InvokeAsync<Func<Task>>("startRecording");
+    // private async Task StartRecording()
+    // {
+    //     try
+    //     {
+    //         recordingFunc = await JSRuntime.InvokeAsync<Func<Task>>("startRecording");
 
 
       
-            // Запись начата, можно выполнить дополнительные действия при необходимости
-            Console.WriteLine("Recording started");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("Error starting recording: " + ex.Message);
-        }
-    }
+    //         // Запись начата, можно выполнить дополнительные действия при необходимости
+    //         Console.WriteLine("Recording started");
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         Console.WriteLine("Error starting recording: " + ex.Message);
+    //     }
+    // }
 
 
     async Task JoinCall()
@@ -145,29 +178,32 @@
 
 
 <script>
+    let recorder; // Объявление переменной в глобальной области
+
     window.startRecording = function () {
         return new Promise((resolve, reject) => {
+            if (recorder && recorder.state !== "inactive") {
+                reject("Recording is already in progress.");
+                return;
+            }
+
             navigator.mediaDevices.getUserMedia({ audio: true })
                 .then(stream => {
-                    const mediaRecorder = new MediaRecorder(stream);
+                    recorder = new MediaRecorder(stream);
                     const audioChunks = [];
 
-                    mediaRecorder.addEventListener("dataavailable", event => {
+                    recorder.addEventListener("dataavailable", event => {
                         audioChunks.push(event.data);
                     });
 
-                    // Функция для завершения записи и возврата результата
                     const finishRecording = () => {
-                        mediaRecorder.stop();
+                        recorder.stop();
                         const audioBlob = new Blob(audioChunks);
                         const audioUrl = URL.createObjectURL(audioBlob);
                         resolve(audioUrl);
                     };
 
-                    // Начать запись аудио
-                    mediaRecorder.start();
-
-                    // Возврат функции завершения записи для возможности остановки внешним вызовом
+                    recorder.start();
                     resolve(finishRecording);
                 })
                 .catch(error => {
@@ -175,6 +211,22 @@
                 });
         });
     };
+
+
+    window.stopRecording = function () {
+        // Check if recorder is active and exists
+        if (recorder && recorder.state !== "inactive") {
+            console.log("Stopping recording...");
+            recorder.stop(); // Stop the recorder
+            console.log("Recording stopped.");
+        } else {
+            console.log("Recorder is not active or does not exist.");
+        }
+    };
+
+
+
+
     window.startCamera = function (videoElement) {
         return new Promise((resolve, reject) => {
             navigator.mediaDevices.getUserMedia({ video: true })
