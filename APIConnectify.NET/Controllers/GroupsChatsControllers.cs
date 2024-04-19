@@ -43,41 +43,49 @@ namespace APIConnectify.NET.Controllers
             for (int i = 0; i< groupsChats.Count(); i++)
             {
                  var user = await _context.Users.Include(u => u.Picture).FirstOrDefaultAsync(u => u.Id == groupsChats[i].Users);
-         
-                var @group = await _context.Group.FirstOrDefaultAsync(u => u.Id == groupsChats[i].Group);
-                if (tr == false)
+                
+                if (user == null)
                 {
-                    foreach (var s in @group.Participants)
-                    {
-                        Users users1 = new Users();
-                        Users users = await _context.Users.Include(u => u.Picture).FirstOrDefaultAsync(u => u.Id == s);
-
-                        if (users == null)
-                        {
-                            users1.Username = "Пользователь удален";
-                        }
-                        else
-                        {
-                            users1 = users;
-                        }
-
-                        if(grouUsersSelects.Contains(users1))
-                        {
-
-                        }
-                        else
-                        {
-                            grouUsersSelects.Add(users1);
-
-                        }
-                    }
-                    sQ.GroupName = @group.GroupName;
-                    sQ.Id = @group.Id;
-                    sQ.Participants = grouUsersSelects;
+                    user.Username = "Пользователь удален";
                 }
-             
+                else
+                {
+                    user = user;
+                }
+                //var @group = await _context.Group.FirstOrDefaultAsync(u => u.Id == groupsChats[i].Group);
+                //if (tr == false)
+                //{
+                //    foreach (var s in @group.Participants)
+                //    {
+                //        Users users1 = new Users();
+                //        Users users = await _context.Users.Include(u => u.Picture).FirstOrDefaultAsync(u => u.Id == s);
 
-                GroupChatsSelect groupChatsSelect = new GroupChatsSelect(groupsChats[i].Id, sQ, user, groupsChats[i].Messages, groupsChats[i].Bytes);
+                //        if (users == null)
+                //        {
+                //            users1.Username = "Пользователь удален";
+                //        }
+                //        else
+                //        {
+                //            users1 = users;
+                //        }
+
+                //        if(grouUsersSelects.Contains(users1))
+                //        {
+
+                //        }
+                //        else
+                //        {
+                //            grouUsersSelects.Add(users1);
+
+                //        }
+                //    }
+                //    sQ.GroupName = @group.GroupName;
+                //    sQ.Id = @group.Id;
+                //    sQ.Participants = grouUsersSelects;
+                //}
+
+
+                GroupChatsSelect groupChatsSelect = new GroupChatsSelect(groupsChats[i].Id,/* sQ, */user, groupsChats[i].Messages, groupsChats[i].Bytes);
                 groupChatsSelects.Add(groupChatsSelect);
 
             }

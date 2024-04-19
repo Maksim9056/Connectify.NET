@@ -317,7 +317,7 @@
 
             while (true)
             {
-                await Task.Delay(TimeSpan.FromSeconds(1)); // Ждем 10 секунд перед следующим выполнением
+                // await Task.Delay(TimeSpan.FromSeconds(1)); // Ждем 10 секунд перед следующим выполнением
 
                 using (httpClient = ClientFactory.CreateClient())
                 {
@@ -331,7 +331,7 @@
                     groupsChats = await httpClient.GetFromJsonAsync<List<GroupChatsSelect>>(httpClient.BaseAddress);
                     // Обновление состояния компонента на основе загруженных данных
 
-                    await Task.Delay(TimeSpan.FromSeconds(1)); // Ждем 10 секунд перед следующим выполнением
+                    await Task.Delay(TimeSpan.FromMilliseconds(1)); // Ждем 10 секунд перед следующим выполнением
                     await InvokeAsync(() =>
                      {
                          // groupsChats = groupsChats;
