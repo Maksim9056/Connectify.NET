@@ -8,6 +8,7 @@ namespace APIConnectify.NET.Data
     {
         public DB(DbContextOptions<DB> options) : base(options)
         {
+            Database.EnsureCreated();
         }
         public DbSet<Users> Users { get; set; } = null!;
         public DbSet<GroupsChats> GroupsChats { get; set; } = null!;
