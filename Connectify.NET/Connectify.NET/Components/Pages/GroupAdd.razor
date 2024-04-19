@@ -33,7 +33,13 @@
             {
                 
             } *@
-
+            <div style="flex-basis: calc(100% - 2.5px); margin-bottom: 5px;">
+                <label for="name">Название группы</label>
+                <input type="text" @bind="НазваниеГруппы" name="name" style="width: calc(100% - 22px);"><br>
+            </div>
+            <div>
+                <label>@users.Username <input type="checkbox" @onchange="@(e => ToggleSelection(users.Id))" /></label>
+            </div>
 
             @foreach (var user in user2)
             {

@@ -43,8 +43,7 @@ namespace APIConnectify.NET.Controllers
             for (int i = 0; i< groupsChats.Count(); i++)
             {
                  var user = await _context.Users.Include(u => u.Picture).FirstOrDefaultAsync(u => u.Id == groupsChats[i].Users);
-                 
-                
+         
                 var @group = await _context.Group.FirstOrDefaultAsync(u => u.Id == groupsChats[i].Group);
                 if (tr == false)
                 {
@@ -62,8 +61,15 @@ namespace APIConnectify.NET.Controllers
                             users1 = users;
                         }
 
+                        if(grouUsersSelects.Contains(users1))
+                        {
 
-                        grouUsersSelects.Add(users1);
+                        }
+                        else
+                        {
+                            grouUsersSelects.Add(users1);
+
+                        }
                     }
                     sQ.GroupName = @group.GroupName;
                     sQ.Id = @group.Id;

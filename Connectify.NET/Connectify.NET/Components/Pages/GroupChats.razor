@@ -159,7 +159,7 @@
                         <div class="chat-message">
                             <div class="user-info">
                                 <img src="data:image/png;base64,@Convert.ToBase64String(user.Users.Picture.Name)" alt="User Avatar">
-                                <b>@user.Users.Username</b>
+                                <b>@ЫЫuser.Users.Username</b>
                             </div>
                             <p>@user.Messages</p>
                         </div>
@@ -248,9 +248,12 @@
             }
             else
             {
+
+                httpClient = ClientFactory.CreateClient();
+
+
                 users = GroupChat.users;
                 group = GroupChat.group;
-                httpClient = ClientFactory.CreateClient();
                 if (group == null)
                 {
 
@@ -258,17 +261,20 @@
                 else
                 {
 
-                    httpClient.BaseAddress = new Uri(url + group.Id);
-                    await LoadData();
-                    update = true;
+                    // httpClient.BaseAddress = new Uri(url + group.Id);
+                    // await LoadData();
+                    // update = true;
+                    // _= Task.Run(() => Normal());
                     _ = Task.Run(() => Normal());
+                    StateHasChanged();
+
                 }
+
             }
 
             if (update == true)
             {
-                await OnAfterRenderAsync(update);
-                StateHasChanged();
+                // await OnAfterRenderAsync(update);
 
             }
 
@@ -281,89 +287,123 @@
     }
 
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!firstRender)
-        {
-            // This will be executed after the component has rendered
-            // Check conditions here and call LoadData as needed
-            await LoadData();
-        }
-    }
+    // protected override async Task OnAfterRenderAsync(bool firstRender)
+    // {
+    //     if (!firstRender)
+    //     {
+    //         // This will be executed after the component has rendered
+    //         // Check conditions here and call LoadData as needed
+    //         await LoadData();
+    //     }
+    // }
 
     // public async Task Norma1l()
     // {
     //     try
     //     {
-            
+
     //     }
     //     catch (Exception ex)
     //     {
 
     //     }
-    
+
     // }
+
     public async Task Normal()
     {
         try
         {
+
             while (true)
             {
+                await Task.Delay(TimeSpan.FromSeconds(1)); // Ждем 10 секунд перед следующим выполнением
 
-                groupsChats = await httpClient.GetFromJsonAsync<List<GroupChatsSelect>>(httpClient.BaseAddress);
-                // Обновление состояния компонента на основе загруженных данных
-                InvokeAsync(() =>
+                using (httpClient = ClientFactory.CreateClient())
                 {
-                    groupsChats = groupsChats;
-                    StateHasChanged(); // Перерисовываем компонент после обновления данных
-                });
-                // Перерисовываем компонент после обновления данных
 
-                // await Task.Delay(TimeSpan.FromSeconds(1)); // Ждем 10 секунд перед следующим выполнением
+
+
+                    // Перерисовываем компонент после обновления данных
+
+                    httpClient.BaseAddress = new Uri(url + group.Id);
+
+                    groupsChats = await httpClient.GetFromJsonAsync<List<GroupChatsSelect>>(httpClient.BaseAddress);
+                    // Обновление состояния компонента на основе загруженных данных
+
+                    await Task.Delay(TimeSpan.FromSeconds(1)); // Ждем 10 секунд перед следующим выполнением
+                    await InvokeAsync(() =>
+                     {
+                         // groupsChats = groupsChats;
+                         StateHasChanged(); // Перерисовываем компонент после обновления данных
+                     });
+                }
+
+                   
+                
             }
         }
-        
-        catch (Exception ex)
+        catch (Exception)
         {
 
         }
     }
-    async Task LoadData()
-    {
-        try
-        {
-            groupsChats = await httpClient.GetFromJsonAsync<List<GroupChatsSelect>>(httpClient.BaseAddress);
 
-        }
-        catch
-        {
+    // async Task LoadData()
+    // {
+    //     try
+    //     {
+    //         using (MemoryStream mem = new MemoryStream())
+    //         {
 
-        }
-    }
+
+    //             groupsChats = await httpClient.GetFromJsonAsync<List<GroupChatsSelect>>(httpClient.BaseAddress);
+    //             // Обновление состояния компонента на основе загруженных данных
+               
+    //             // Перерисовываем компонент после обновления данных
+
+    //             await Task.Delay(TimeSpan.FromSeconds(1)); // Ждем 10 секунд перед следующим выполнением
+    //             await InvokeAsync(() =>
+    //            {
+    //                // groupsChats = groupsChats;
+    //                StateHasChanged(); // Перерисовываем компонент после обновления данных
+    //            });
+    //         }
+
+    //     }
+    //     catch
+    //     {
+
+    //     }
+    // }
 
     private async Task SubmitForm()
     {
         try
         {
+            httpClient = ClientFactory.CreateClient();
+
             if (!string.IsNullOrEmpty(Название))
             {
                 byte[] bytes = new byte[10];
                 // Files fs = new Files(1, bytes);
                 GroupsChats groupsChat = new GroupsChats { Id = 0, Group = group.Id, Users = users.Id, Messages = Название, Bytes = bytes };
-                httpClient = ClientFactory.CreateClient();
-                httpClient.BaseAddress = new Uri(urlPOST);
-                string jsonString = JsonConvert.SerializeObject(groupsChat);
-                HttpContent content = new StringContent(jsonString, Encoding.UTF8, "application/json");
+             
+                    httpClient.BaseAddress = new Uri(urlPOST);
+                    string jsonString = JsonConvert.SerializeObject(groupsChat);
+                    HttpContent content = new StringContent(jsonString, Encoding.UTF8, "application/json");
 
-                var response = await httpClient.PostAsync(url, content);
-                httpClient = ClientFactory.CreateClient();
-                httpClient.BaseAddress = new Uri(url + group.Id);
+                    var response = await httpClient.PostAsync(url, content);
+                    // httpClient = ClientFactory.CreateClient();
+                    // httpClient.BaseAddress = new Uri(url + group.Id);
 
-                groupsChats = await httpClient.GetFromJsonAsync<List<APIConnectify.NET.Models.GroupChatsSelect>>(httpClient.BaseAddress);
+                    // groupsChats = await httpClient.GetFromJsonAsync<List<APIConnectify.NET.Models.GroupChatsSelect>>(httpClient.BaseAddress);
 
-                // await Update();
-                StateHasChanged();
-            }
+                    // await Update();
+                    StateHasChanged();
+                }
+              
+            
         }
         catch (Exception)
         {
