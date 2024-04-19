@@ -1,0 +1,223 @@
+﻿@page "/audiocall/{roomId}"
+@inject IJSRuntime JSRuntime
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+@using System.Text
+@using System.Text.RegularExpressions
+
+<div>
+    <audio controls id="audioPlayer"></audio>
+    <button @onclick="JoinAudioRoom">Join Audio Room</button>
+    <button @onclick="LeaveAudioRoom">Leave Audio Room</button>
+</div>
+<div>
+    <audio controls id="audioPlayer"></audio>
+    <button @onclick="JoinAudioRoom">Join Audio Room</button>
+    <button @onclick="LeaveAudioRoom">Leave Audio Room</button>
+</div>
+
+@code {
+    private HubConnection hubConnection;
+    private string roomId;
+
+    [Parameter]
+    public string RoomId
+    {
+        get => roomId;
+        set
+        {
+            roomId = value;
+            // Вызов метода при изменении RoomId (можно здесь выполнить подключение к комнате)
+            if (!string.IsNullOrEmpty(roomId))
+            {
+                ConnectToRoom();
+            }
+        }
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        // roomId = GetRoomIdFromUrl();
+
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/signalr"))
+            .Build();
+
+        hubConnection.On<string>("ReceiveAudio", async (audioBase64) =>
+        {
+            await PlayReceivedAudio(audioBase64);
+        });
+
+        await hubConnection.StartAsync();
+    }
+
+    private async Task JoinAudioRoom()
+    {
+        try
+        {
+            await hubConnection.SendAsync("JoinAudioRoom", roomId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error joining audio room: " + ex.Message);
+        }
+    }
+
+    private async Task LeaveAudioRoom()
+    {
+        try
+        {
+            await hubConnection.SendAsync("LeaveAudioRoom", roomId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error leaving audio room: " + ex.Message);
+        }
+    }
+
+    private async Task PlayReceivedAudio(string audioBase64)
+    {
+        byte[] audioBytes = Convert.FromBase64String(audioBase64);
+        string audioSrc = $"data:audio/wav;base64,{Convert.ToBase64String(audioBytes)}";
+        await JSRuntime.InvokeVoidAsync("playAudio", "audioPlayer", audioSrc);
+    }
+
+
+
+    private string GetRoomIdFromUrl()
+    {
+        var uri = NavigationManager.Uri;
+        var match = Regex.Match(uri, @"\/audiocall\/([^\/]+)$");
+        if (match.Success)
+        {
+            return match.Groups[1].Value;
+        }
+        return string.Empty;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection != null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
+    private async Task ConnectToRoom()
+    {
+        if (string.IsNullOrEmpty(roomId))
+        {
+            return;
+        }
+
+        // Инициализация HubConnection и подключение к SignalR Hub
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/audiohub"))
+            .Build();
+
+        hubConnection.On<string>("ReceiveAudio", async (audioBase64) =>
+        {
+            await PlayReceivedAudio(audioBase64);
+        });
+
+        await hubConnection.StartAsync();
+    }
+}
+
+<script>
+
+    // custom.js
+
+    window.playAudio = function (audioElementId, audioSrc) {
+        const audioElement = document.getElementById(audioElementId);
+        if (audioElement) {
+            audioElement.src = audioSrc;
+            audioElement.play();
+        }
+    };
+
+
+</script>
+    // custom.js
+
+    // let localStream;
+    // let mediaRecorder;
+
+    // window.startMediaStream = async function (videoElementId) {
+    //     try {
+    //         const constraints = { video: true, audio: true };
+    //         localStream = await navigator.mediaDevices.getUserMedia(constraints);
+    //         const videoElement = document.getElementById(videoElementId);
+    //         if (videoElement) {
+    //             videoElement.srcObject = localStream;
+    //             videoElement.play();
+    //         }
+    //     } catch (error) {
+    //         console.error('Error starting media stream:', error);
+    //     }
+    // };
+
+    // window.stopMediaStream = async function (videoElementId) {
+    //     try {
+    //         if (localStream) {
+    //             localStream.getTracks().forEach(track => track.stop());
+    //             localStream = null;
+    //             const videoElement = document.getElementById(videoElementId);
+    //             if (videoElement) {
+    //                 videoElement.srcObject = null;
+    //             }
+    //         }
+    //     } catch (error) {
+    //         console.error('Error stopping media stream:', error);
+    //     }
+    // };
+
+    // window.startRecording = async function () {
+    //     try {
+    //         if (!localStream) {
+    //             console.error('No active media stream to record.');
+    //             return;
+    //         }
+    //         const audioStream = new MediaStream();
+    //         localStream.getAudioTracks().forEach(track => audioStream.addTrack(track));
+    //         mediaRecorder = new MediaRecorder(audioStream);
+    //         const chunks = [];
+
+    //         mediaRecorder.ondataavailable = event => {
+    //             if (event.data.size > 0) {
+    //                 chunks.push(event.data);
+    //             }
+    //         };
+
+    //         mediaRecorder.onstop = () => {
+    //             const blob = new Blob(chunks, { type: mediaRecorder.mimeType });
+    //             const url = URL.createObjectURL(blob);
+    //             console.log('Recording stopped. Recorded media available at:', url);
+    //         };
+
+    //         mediaRecorder.start();
+    //         console.log('Recording started.');
+    //     } catch (error) {
+    //         console.error('Error starting recording:', error);
+    //     }
+    // };
+
+    // window.stopRecording = function () {
+    //     try {
+    //         if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    //             mediaRecorder.stop();
+    //         }
+    //     } catch (error) {
+    //         console.error('Error stopping recording:', error);
+    //     }
+    // };
+
+    // window.joinAudioConference = async function () {
+    //     try {
+    //         const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    //         const audioTracks = audioStream.getAudioTracks();
+    //         audioTracks.forEach(track => localStream.addTrack(track));
+    //         console.log('Joined audio conference.');
+    //     } catch (error) {
+    //         console.error('Error joining audio conference:', error);
+    //     }
+    // };

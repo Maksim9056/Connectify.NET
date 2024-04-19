@@ -2,10 +2,8 @@
 @rendermode InteractiveServer
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
-
 @using Microsoft.AspNetCore.Components.Web
-
-<h1>Аудио / Видео звонок</h1>
+@using Microsoft.AspNetCore.SignalR.Client
 
 <div>
     <video id="cameraPreview" width="320" height="240"></video>
@@ -17,9 +15,7 @@
 </div>
 
 <div>
-    <button id="joinButton" @onclick="JoinCall">Присоединиться к звонку</button>
-    <button @onclick="EndCall">Завершить звонок</button>
-    <button @onclick="EndCall">Завершить звонок</button>
+
     <button @onclick="StartRecording">Запись аудио</button>
     <button @onclick="StopRecording">Выключить микрофон</button>
     <button @onclick="StartCamera">Start Camera</button>
@@ -27,23 +23,39 @@
 
     <button @onclick="StartScreenSharing">Start Screen Sharing</button>
     <button @onclick="StopScreenSharing">Stop Screen Sharing</button>
-
-    <p id="callStatus">Статус: ожидание</p>
-    <p>Поделитесь ссылкой с другими для присоединения:</p>
-    <input type="text" id="callLink" readonly style="width: 300px;">
 </div>
 
 @code {
+    private HubConnection hubConnection;
 
-    private Func<Task> recordingFunc; // Функция для управления записью
-
-
+    private IJSObjectReference videoElement;
     private async Task StartRecording()
     {
         try
         {
-            await JSRuntime.InvokeVoidAsync("startRecording");
+            hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/signalr"))
+            .Build();
+            // await JSRuntime.InvokeVoidAsync("startRecording");
             Console.WriteLine("Recording started");
+
+            // Настроить обработчики событий от сервера
+            hubConnection.On("ReceiveCallStart", async () =>
+            {
+                // Получаем доступ к мультимедиа (камере и микрофону) через JavaScript
+                await JSRuntime.InvokeVoidAsync("startMediaStream", "localVideo");
+            });
+
+            hubConnection.On("ReceiveCallEnd", async () =>
+            {
+                // Останавливаем мультимедиа (камера и микрофон) через JavaScript
+                await JSRuntime.InvokeVoidAsync("stopMediaStream", "localVideo");
+            });
+
+            await hubConnection.StartAsync();
+
+            await hubConnection.SendAsync("StartCall");
+
         }
         catch (Exception ex)
         {
@@ -63,11 +75,6 @@
             Console.WriteLine("Error stopping recording: " + ex.Message);
         }
     }
-
-
-
-
-    private IJSObjectReference videoElement;
     private async Task StartCamera()
     {
         try
@@ -84,7 +91,6 @@
             Console.WriteLine("Error starting camera: " + ex.Message);
         }
     }
-
     private async Task StopCamera()
     {
         try
@@ -100,54 +106,6 @@
         {
             Console.WriteLine("Error stopping camera: " + ex.Message);
         }
-    }
-
-    // private async Task StartRecording()
-    // {
-    //     try
-    //     {
-    //         recordingFunc = await JSRuntime.InvokeAsync<Func<Task>>("startRecording");
-
-
-      
-    //         // Запись начата, можно выполнить дополнительные действия при необходимости
-    //         Console.WriteLine("Recording started");
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         Console.WriteLine("Error starting recording: " + ex.Message);
-    //     }
-    // }
-
-
-    async Task JoinCall()
-    {
-
-        
-        await JSRuntime.InvokeAsync<string>("joinCall"); // this calls "window.PlaySound()"
-                                                          // // Здесь будет код для присоединения к звонку
-        // // Например, запрос разрешения на использование медиа-устройств
-        await JSRuntime.InvokeAsync<string>("ReceiveOffer"); // this calls "window.PlaySound()"
-
-        // try
-        // {
-        //     // const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        //     // const localVideo = document.getElementById('localVideo') as HTMLVideoElement;
-        //     // localVideo.srcObject = stream;
-        //     // localVideo.style.display = 'block';
-
-        //     // Другой код для управления звонком
-        // }
-        // catch (err)
-        // {
-        //     console.error('Ошибка при получении доступа к медиа-устройствам:', err);
-        // }
-    }
-
-    void EndCall()
-    {
-        // Здесь будет код для завершения звонка
-        // Например, остановка медиа-потоков и обновление интерфейса
     }
     private async Task StartScreenSharing()
     {
@@ -175,9 +133,38 @@
         }
     }
 }
-
-
 <script>
+    // custom.js
+
+    // Функция для запуска видеопотока с камеры и микрофона
+    window.startMediaStream = async function (videoElementId) {
+        try {
+            const videoElement = document.getElementById(videoElementId);
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            videoElement.srcObject = stream;
+            videoElement.play();
+        } catch (error) {
+            console.error('Error accessing media devices:', error);
+        }
+    };
+
+    // Функция для остановки видеопотока
+    window.stopMediaStream = async function (videoElementId) {
+        try {
+            const videoElement = document.getElementById(videoElementId);
+            const stream = videoElement.srcObject;
+            if (stream) {
+                const tracks = stream.getTracks();
+                tracks.forEach(track => track.stop());
+                videoElement.srcObject = null;
+            }
+        } catch (error) {
+            console.error('Error stopping media stream:', error);
+        }
+    };
+
+</script>
+@* <script>
     let recorder; // Объявление переменной в глобальной области
 
     window.startRecording = function () {
@@ -186,7 +173,6 @@
                 reject("Recording is already in progress.");
                 return;
             }
-
             navigator.mediaDevices.getUserMedia({ audio: true })
                 .then(stream => {
                     recorder = new MediaRecorder(stream);
@@ -211,8 +197,6 @@
                 });
         });
     };
-
-
     window.stopRecording = function () {
         // Check if recorder is active and exists
         if (recorder && recorder.state !== "inactive") {
@@ -223,10 +207,6 @@
             console.log("Recorder is not active or does not exist.");
         }
     };
-
-
-
-
     window.startCamera = function (videoElement) {
         return new Promise((resolve, reject) => {
             navigator.mediaDevices.getUserMedia({ video: true })
@@ -242,7 +222,6 @@
                 });
         });
     };
-
     window.stopCamera = function (videoElement) {
         const stream = videoElement.srcObject;
         if (stream) {
@@ -264,7 +243,6 @@
             console.error('Error starting screen sharing:', error);
         }
     };
-
     window.stopScreenSharing = function (videoElement) {
         const stream = videoElement.srcObject;
         if (stream) {
@@ -275,12 +253,65 @@
             videoElement.srcObject = null;
         }
     };
+</script> *@
+@*
+    <h1>Аудио / Видео звонок</h1>
+
+    <p id="callStatus">Статус: ожидание</p>
+    <p>Поделитесь ссылкой с другими для присоединения:</p>
+    <input type="text" id="callLink" readonly style="width: 300px;">
+    // private Func<Task> recordingFunc; // Функция для управления записью
+
+    <button id="joinButton" @onclick="JoinCall">Присоединиться к звонку</button>
+    <button @onclick="EndCall">Завершить звонок</button>
+    <button @onclick="EndCall">Завершить звонок</button>
 
 
-</script>
-@* 
+    async Task JoinCall()
+    {
 
-    
+
+
+    }
+
+    void EndCall()
+    {
+        // Здесь будет код для завершения звонка
+        // Например, остановка медиа-потоков и обновление интерфейса
+    }
+        await JSRuntime.InvokeAsync<string>("joinCall"); // this calls "window.PlaySound()"
+                                                          // // Здесь будет код для присоединения к звонку
+        // // Например, запрос разрешения на использование медиа-устройств
+        await JSRuntime.InvokeAsync<string>("ReceiveOffer"); // this calls "window.PlaySound()"
+
+      // try
+        // {
+        //     // const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        //     // const localVideo = document.getElementById('localVideo') as HTMLVideoElement;
+        //     // localVideo.srcObject = stream;
+        //     // localVideo.style.display = 'block';
+
+        //     // Другой код для управления звонком
+        // }
+        // catch (err)
+        // {
+        //     console.error('Ошибка при получении доступа к медиа-устройствам:', err);
+        // }// private async Task StartRecording()
+        // {
+        //     try
+        //     {
+        //         recordingFunc = await JSRuntime.InvokeAsync<Func<Task>>("startRecording");
+
+
+
+        //         // Запись начата, можно выполнить дополнительные действия при необходимости
+        //         Console.WriteLine("Recording started");
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         Console.WriteLine("Error starting recording: " + ex.Message);
+        //     }
+        // }
 <script>
     // Объявление переменных
     let peerConnection;

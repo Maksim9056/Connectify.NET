@@ -21,6 +21,7 @@
     <ProjectReference Include="..\..\APIConnectify.NET\APIConnectify.NET.csproj" />
     <ProjectReference Include="..\Connectify.NET.Client\Connectify.NET.Client.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.4" />
     <PackageReference Include="NAudio" Version="2.2.1" />
   </ItemGroup>
 

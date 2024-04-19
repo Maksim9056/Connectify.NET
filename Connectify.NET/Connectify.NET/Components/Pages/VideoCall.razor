@@ -1,0 +1,183 @@
+﻿@page "/videocall"
+@inject IJSRuntime JSRuntime
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<div>
+    <video id="localVideo" autoplay muted style="width: 320px; height: 240px;"></video>
+    <video id="remoteVideo" autoplay style="width: 320px; height: 240px;"></video>
+
+    <button @onclick="StartCall">Start Call</button>
+    <button @onclick="EndCall">End Call</button>
+    <button @onclick="StartRecording">Start Recording</button>
+    <button @onclick="StopRecording">Stop Recording</button>
+
+    <p>@(isMediaStreamActive ? "Media stream is active." : "Media stream is not active.")</p>
+    <p>@(isRecording ? "Recording in progress." : "Not recording.")</p>
+</div>
+
+@code {
+        
+  
+        private HubConnection hubConnection;
+        private bool isMediaStreamActive = false;
+        private bool isRecording = false;
+
+        protected override async Task OnInitializedAsync()
+        {
+            hubConnection = new HubConnectionBuilder()
+                .WithUrl(NavigationManager.ToAbsoluteUri("/signalr"))
+                .Build();
+
+            hubConnection.On("ReceiveCallStart", async () =>
+            {
+                isMediaStreamActive = true;
+                await JSRuntime.InvokeVoidAsync("startMediaStream", "localVideo");
+                StateHasChanged();
+            });
+
+            hubConnection.On("ReceiveCallEnd", async () =>
+            {
+                isMediaStreamActive = false;
+                await JSRuntime.InvokeVoidAsync("stopMediaStream", "localVideo");
+                StateHasChanged();
+            });
+
+            await hubConnection.StartAsync();
+        }
+
+        private async Task StartCall()
+        {
+            try
+            {
+                await hubConnection.SendAsync("StartCall");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error starting call: " + ex.Message);
+            }
+        }
+
+        private async Task EndCall()
+        {
+            try
+            {
+                await hubConnection.SendAsync("EndCall");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error ending call: " + ex.Message);
+            }
+        }
+
+        private async Task StartRecording()
+        {
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("startRecording");
+                isRecording = true;
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error starting recording: " + ex.Message);
+            }
+        }
+
+        private async Task StopRecording()
+        {
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("stopRecording");
+                isRecording = false;
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error stopping recording: " + ex.Message);
+            }
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (hubConnection != null)
+            {
+                await hubConnection.DisposeAsync();
+            }
+        }
+}
+<script>
+    // custom.js
+
+    let localStream;
+    let recorder;
+
+    window.startMediaStream = async function (videoElementId) {
+        try {
+            const constraints = { video: true, audio: true };
+            localStream = await navigator.mediaDevices.getUserMedia(constraints);
+            const videoElement = document.getElementById(videoElementId);
+            if (videoElement) {
+                videoElement.srcObject = localStream;
+                videoElement.play();
+            }
+        } catch (error) {
+            console.error('Error starting media stream:', error);
+        }
+    };
+
+    window.stopMediaStream = async function (videoElementId) {
+        try {
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+                const videoElement = document.getElementById(videoElementId);
+                if (videoElement) {
+                    videoElement.srcObject = null;
+                }
+            }
+        } catch (error) {
+            console.error('Error stopping media stream:', error);
+        }
+    };
+
+    window.startRecording = async function () {
+        try {
+            if (!localStream) {
+                console.error('No active media stream to record.');
+                return;
+            }
+            recorder = new MediaRecorder(localStream);
+            const chunks = [];
+
+            recorder.ondataavailable = event => {
+                if (event.data.size > 0) {
+                    chunks.push(event.data);
+                }
+            };
+
+            recorder.onstop = () => {
+                const blob = new Blob(chunks, { type: recorder.mimeType });
+                const url = URL.createObjectURL(blob);
+                console.log('Recording stopped. Recorded media available at:', url);
+            };
+
+            recorder.start();
+            console.log('Recording started.');
+        } catch (error) {
+            console.error('Error starting recording:', error);
+        }
+    };
+
+    window.stopRecording = function () {
+        try {
+            if (recorder && recorder.state !== 'inactive') {
+                recorder.stop();
+            }
+        } catch (error) {
+            console.error('Error stopping recording:', error);
+        }
+    };
+
+</script>
