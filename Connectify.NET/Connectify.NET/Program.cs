@@ -1,6 +1,8 @@
 using Connectify.NET.Components;
 using Connectify.NET.Components.Pages;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.SignalR.Client;
 using System.ComponentModel;
 
 namespace Connectify.NET
@@ -37,6 +39,14 @@ namespace Connectify.NET
                 builder.Services.AddRazorPages();
                 builder.Services.AddSignalR();
                 builder.Services.AddServerSideBlazor();
+                builder.Services.AddSingleton<HubConnection>(_ =>
+                {
+                    var navigationManager = _.GetRequiredService<NavigationManager>();
+                    return new HubConnectionBuilder()
+                        .WithUrl(navigationManager.ToAbsoluteUri("/signalr"))
+                        .Build();
+                });
+
                 var app = builder.Build();
                 // Configure the HTTP request pipeline.
                 if (app.Environment.IsDevelopment())

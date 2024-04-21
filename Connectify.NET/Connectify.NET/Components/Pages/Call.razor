@@ -1,118 +1,116 @@
-﻿@page "/call"
-@rendermode InteractiveServer
-@inject NavigationManager NavigationManager
-@inject IJSRuntime JSRuntime
-@using Microsoft.AspNetCore.Components.Web
+﻿@page "/call/{roomId}"
 @using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager NavigationManager
+@inject HubConnection HubConnection
+
+@inject IJSRuntime JSRuntime
+
+<h1>Room ID: @roomId</h1>
 
 <div>
-    <video id="cameraPreview" width="320" height="240"></video>
-    <video id="remoteVideo" autoplay onplaying="createPeerConnection" style="width: 320px; height: 240px;"></video>
-    <video id="screenPreview" width="640" height="480"></video>
-    <video id="cameraPreview" width="320" height="240"></video>
-    <video id="audioPreview" controls autoplay muted style="display: none;"></video> <!-- Добавим скрытый видео-элемент для просмотра аудио -->
-
+    <button @onclick="StartCall">Start Call</button>
+    <button @onclick="EndCall">End Call</button>
 </div>
 
 <div>
-
-    <button @onclick="StartRecording">Запись аудио</button>
-    <button @onclick="StopRecording">Выключить микрофон</button>
+    <button @onclick="StartMicrophoneRecording">Start Microphone</button>
+    <button @onclick="StopMicrophoneRecording">Stop Microphone</button>
     <button @onclick="StartCamera">Start Camera</button>
     <button @onclick="StopCamera">Stop Camera</button>
-
     <button @onclick="StartScreenSharing">Start Screen Sharing</button>
     <button @onclick="StopScreenSharing">Stop Screen Sharing</button>
 </div>
 
+<div>
+    <h2>Active Users:</h2>
+    <ul>
+        @foreach (var user in activeUsers)
+        {
+            <li>@user</li>
+        }
+    </ul>
+</div>
+
+<audio id="audioPlayer" controls style="display: none;"></audio>
+
 @code {
-    private HubConnection hubConnection;
+    [Parameter]
+    public string roomId { get; set; }
+    private HubConnection hubConnection ;
 
-    private IJSObjectReference videoElement;
-    private async Task StartRecording()
+    private List<string> activeUsers = new List<string>();
+
+    private async Task StartCall()
+    {
+        // hubConnection = new HubConnectionBuilder()
+        //     .WithUrl(NavigationManager.ToAbsoluteUri("/signalr"))
+        //     .Build();
+        await hubConnection.SendAsync("StartCall");
+    }
+
+    private async Task EndCall()
+    {
+        await hubConnection.SendAsync("EndCall");
+    }
+
+    private async Task StartMicrophoneRecording()
     {
         try
         {
-            hubConnection = new HubConnectionBuilder()
-            .WithUrl(NavigationManager.ToAbsoluteUri("/signalr"))
-            .Build();
-            // await JSRuntime.InvokeVoidAsync("startRecording");
-            Console.WriteLine("Recording started");
-
-            // Настроить обработчики событий от сервера
-            hubConnection.On("ReceiveCallStart", async () =>
-            {
-                // Получаем доступ к мультимедиа (камере и микрофону) через JavaScript
-                await JSRuntime.InvokeVoidAsync("startMediaStream", "localVideo");
-            });
-
-            hubConnection.On("ReceiveCallEnd", async () =>
-            {
-                // Останавливаем мультимедиа (камера и микрофон) через JavaScript
-                await JSRuntime.InvokeVoidAsync("stopMediaStream", "localVideo");
-            });
-
-            await hubConnection.StartAsync();
-
-            await hubConnection.SendAsync("StartCall");
-
+            // Запустить запись с микрофона
+            await JSRuntime.InvokeVoidAsync("startRecording");
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Error starting recording: " + ex.Message);
+            Console.WriteLine("Error starting microphone recording: " + ex.Message);
         }
     }
 
-    private async Task StopRecording()
+    private async Task StopMicrophoneRecording()
     {
         try
         {
+            // Остановить запись с микрофона
             await JSRuntime.InvokeVoidAsync("stopRecording");
-            Console.WriteLine("Recording stopped");
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Error stopping recording: " + ex.Message);
+            Console.WriteLine("Error stopping microphone recording: " + ex.Message);
         }
     }
+
     private async Task StartCamera()
     {
-        try
+         try
         {
-            if (videoElement == null)
-            {
-                videoElement = await JSRuntime.InvokeAsync<IJSObjectReference>("document.getElementById", "screenPreview");
-            }
-
-            await JSRuntime.InvokeVoidAsync("startCamera", videoElement);
+            // Начать использование камеры
+            await JSRuntime.InvokeVoidAsync("startCamera", "cameraPreview");
         }
         catch (Exception ex)
         {
             Console.WriteLine("Error starting camera: " + ex.Message);
         }
     }
+
     private async Task StopCamera()
     {
         try
         {
-            if (videoElement == null)
-            {
-                videoElement = await JSRuntime.InvokeAsync<IJSObjectReference>("document.getElementById", "screenPreview");
-            }
-
-            await JSRuntime.InvokeVoidAsync("stopCamera", videoElement);
+            // Остановить использование камеры
+            await JSRuntime.InvokeVoidAsync("stopCamera", "cameraPreview");
         }
         catch (Exception ex)
         {
             Console.WriteLine("Error stopping camera: " + ex.Message);
         }
     }
+
     private async Task StartScreenSharing()
     {
         try
         {
-            var videoElement = await JSRuntime.InvokeAsync<IJSObjectReference>("document.getElementById", "screenPreview");
-            await JSRuntime.InvokeVoidAsync("startScreenSharing", videoElement);
+            // Начать показ экрана
+            await JSRuntime.InvokeVoidAsync("startScreenSharing", "screenPreview");
         }
         catch (Exception ex)
         {
@@ -124,47 +122,55 @@
     {
         try
         {
-            var videoElement = await JSRuntime.InvokeAsync<IJSObjectReference>("document.getElementById", "screenPreview");
-            await JSRuntime.InvokeVoidAsync("stopScreenSharing", videoElement);
+            // Остановить показ экрана
+            await JSRuntime.InvokeVoidAsync("stopScreenSharing", "screenPreview");
         }
         catch (Exception ex)
         {
             Console.WriteLine("Error stopping screen sharing: " + ex.Message);
         }
     }
+
+    protected override async Task OnInitializedAsync()
+    {
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/signalr"))
+            .Build();
+        await hubConnection.StartAsync();
+        await hubConnection.SendAsync("JoinAudioRoom", roomId);
+
+        hubConnection.On<string>("UserJoined", user =>
+        {
+            activeUsers.Add(user);
+            StateHasChanged();
+        });
+
+        hubConnection.On<string>("UserLeft", user =>
+        {
+            activeUsers.Remove(user);
+            StateHasChanged();
+        });
+
+        hubConnection.On<byte[]>("ReceiveAudio", audioData =>
+        {
+            PlayAudio(audioData);
+        });
+    }
+
+    public void Dispose()
+    {
+        _ = hubConnection.SendAsync("LeaveAudioRoom", roomId);
+    }
+
+    private async void PlayAudio(byte[] audioData)
+    {
+        var audioPlayer = await JSRuntime.InvokeAsync<IJSObjectReference>("document.getElementById", "audioPlayer");
+        await audioPlayer.InvokeVoidAsync("pause");
+        await JSRuntime.InvokeVoidAsync("playAudio", audioData);
+    }
 }
+
 <script>
-    // custom.js
-
-    // Функция для запуска видеопотока с камеры и микрофона
-    window.startMediaStream = async function (videoElementId) {
-        try {
-            const videoElement = document.getElementById(videoElementId);
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            videoElement.srcObject = stream;
-            videoElement.play();
-        } catch (error) {
-            console.error('Error accessing media devices:', error);
-        }
-    };
-
-    // Функция для остановки видеопотока
-    window.stopMediaStream = async function (videoElementId) {
-        try {
-            const videoElement = document.getElementById(videoElementId);
-            const stream = videoElement.srcObject;
-            if (stream) {
-                const tracks = stream.getTracks();
-                tracks.forEach(track => track.stop());
-                videoElement.srcObject = null;
-            }
-        } catch (error) {
-            console.error('Error stopping media stream:', error);
-        }
-    };
-
-</script>
-@* <script>
     let recorder; // Объявление переменной в глобальной области
 
     window.startRecording = function () {
@@ -253,7 +259,7 @@
             videoElement.srcObject = null;
         }
     };
-</script> *@
+</script>
 @*
     <h1>Аудио / Видео звонок</h1>
 
@@ -467,6 +473,37 @@ export default socket;
     module.exports = ACTIONS
 
 
+
+</script>
+<script>
+    // custom.js
+
+    // Функция для запуска видеопотока с камеры и микрофона
+    window.startMediaStream = async function (videoElementId) {
+        try {
+            const videoElement = document.getElementById(videoElementId);
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            videoElement.srcObject = stream;
+            videoElement.play();
+        } catch (error) {
+            console.error('Error accessing media devices:', error);
+        }
+    };
+
+    // Функция для остановки видеопотока
+    window.stopMediaStream = async function (videoElementId) {
+        try {
+            const videoElement = document.getElementById(videoElementId);
+            const stream = videoElement.srcObject;
+            if (stream) {
+                const tracks = stream.getTracks();
+                tracks.forEach(track => track.stop());
+                videoElement.srcObject = null;
+            }
+        } catch (error) {
+            console.error('Error stopping media stream:', error);
+        }
+    };
 
 </script>
    *@
