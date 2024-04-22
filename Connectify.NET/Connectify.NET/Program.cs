@@ -26,6 +26,13 @@ namespace Connectify.NET
                 builder.Services.AddScoped<Connectify.NET.Components.Pages.ListChatsAll>();
                 builder.Services.AddScoped<Connectify.NET.Components.Pages.Friends>();
                 builder.Services.AddScoped<System.ComponentModel.Component>();
+                builder.Services.AddScoped<HubConnection>(serviceProvider =>
+                {
+                    var navigationManager = serviceProvider.GetRequiredService<NavigationManager>();
+                    return new HubConnectionBuilder()
+                        .WithUrl(navigationManager.ToAbsoluteUri("/signalr"))
+                        .Build();
+                });
                 builder.Services.AddCors(options =>
                 {
                     options.AddPolicy("AllowAll",
@@ -39,13 +46,7 @@ namespace Connectify.NET
                 builder.Services.AddRazorPages();
                 builder.Services.AddSignalR();
                 builder.Services.AddServerSideBlazor();
-                builder.Services.AddSingleton<HubConnection>(_ =>
-                {
-                    var navigationManager = _.GetRequiredService<NavigationManager>();
-                    return new HubConnectionBuilder()
-                        .WithUrl(navigationManager.ToAbsoluteUri("/signalr"))
-                        .Build();
-                });
+            
 
                 var app = builder.Build();
                 // Configure the HTTP request pipeline.

@@ -1,21 +1,14 @@
 ﻿namespace Connectify.NET.Components.Pages
 {
     using Microsoft.AspNetCore.SignalR;
+    using Microsoft.JSInterop;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
 
     public class SignalingHub : Hub
     {
         private static readonly Dictionary<string, List<string>> AudioRooms = new Dictionary<string, List<string>>();
-        public async Task SendVideo(string roomId, byte[] videoData)
-        {
-            await Clients.OthersInGroup(roomId).SendAsync("ReceiveVideo", videoData);
-        }
-
-        public async Task SendScreenShare(string roomId, byte[] screenData)
-        {
-            await Clients.OthersInGroup(roomId).SendAsync("ReceiveScreenShare", screenData);
-        }
 
         public async Task CreateAudioRoom(string roomId)
         {
@@ -25,25 +18,29 @@
                 AudioRooms.Add(roomId, new List<string>());
             }
         }
-
         public async Task JoinAudioRoom(string roomId)
         {
-            // Добавляем участника в указанную аудио-комнату
+            if (string.IsNullOrEmpty(roomId))
+            {
+                throw new ArgumentException("Room ID cannot be empty or null.", nameof(roomId));
+            }
+
             if (AudioRooms.ContainsKey(roomId))
             {
                 await Groups.AddToGroupAsync(Context.ConnectionId, roomId);
-                AudioRooms[roomId].Add(Context.ConnectionId); // Добавляем ConnectionId участника в список комнаты
+                AudioRooms[roomId].Add(Context.ConnectionId);
 
-                // Отправляем сообщение о присоединении нового участника другим участникам комнаты
                 await Clients.OthersInGroup(roomId).SendAsync("UserJoined", Context.ConnectionId);
+
+                var activeUsersInRoom = AudioRooms[roomId];
+                await Clients.Caller.SendAsync("ActiveUsersInRoom", activeUsersInRoom);
+            }
+            else
+            {
+                throw new ArgumentException($"Room '{roomId}' does not exist.", nameof(roomId));
             }
         }
 
-        public async Task SendAudio(string roomId, byte[] audioData)
-        {
-            // Отправляем аудио данным другим участникам комнаты
-            await Clients.OthersInGroup(roomId).SendAsync("ReceiveAudio", audioData);
-        }
 
         public async Task LeaveAudioRoom(string roomId)
         {
@@ -58,18 +55,34 @@
             }
         }
 
-        public async Task StartCall()
+        [JSInvokable]
+        public async Task SendAudio(string roomId, byte[] audioData)
         {
-            // Отправить сигнал о начале звонка другим участникам
-            await Clients.Others.SendAsync("ReceiveCallStart");
+            if (AudioRooms.ContainsKey(roomId))
+            {
+                var senderId = Context.ConnectionId;
+                var receiverIds = AudioRooms[roomId].Where(id => id != senderId).ToList();
+
+                if (receiverIds.Any())
+                {
+                    await Clients.Clients(receiverIds).SendAsync("ReceiveAudio", senderId, audioData);
+                }
+            }
         }
 
-        public async Task EndCall()
+        public async Task StartCall(string roomId)
+        {
+            // Отправить сигнал о начале звонка другим участникам
+            await Clients.OthersInGroup(roomId).SendAsync("ReceiveCallStart");
+        }
+
+        public async Task EndCall(string roomId)
         {
             // Отправить сигнал об окончании звонка другим участникам
-            await Clients.Others.SendAsync("ReceiveCallEnd");
+            await Clients.OthersInGroup(roomId).SendAsync("ReceiveCallEnd");
         }
     }
+
 
 
 
