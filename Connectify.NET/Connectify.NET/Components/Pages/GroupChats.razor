@@ -34,6 +34,8 @@
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         box-sizing: border-box;
         overflow: hidden; /* Скрытие излишнего содержимого чата за пределами контейнера */
+        transition: background 0.2s ease;
+        scroll-behavior: smooth;
     }
 
     .chat-header {
@@ -43,6 +45,7 @@
         margin-bottom: 20px;
         border-bottom: 1px solid #ccc;
         padding-bottom: 10px;
+        transition: background 0.2s ease;
     }
 
     .chat-title {
@@ -63,10 +66,13 @@
     }
 
     .chat-messages {
+        
         max-height: 60vh; /* Максимальная высота области сообщений, соответствующая 60% высоты видимой области */
         overflow-y: auto;
         margin-bottom: 20px;
         padding-right: 10px;
+        scroll-behavior: smooth;
+        padding: 10px 20px;
     }
 
     .chat-message {
@@ -120,13 +126,17 @@
         color: #666;
         text-align: center;
     }
+
+    html {
+        scroll-behavior: smooth;
+    }
 </style>
 
 
 <div class="page-container">
     @try
     {
-        <div class="chat-container">
+        <div class="chat-container" id="chat-container">
             @if (group != null)
             {
                 <div class="chat-header">
@@ -149,17 +159,25 @@
             }
 
 
-            <div class="chat-messages">
+            <div class="chat-messages" id="chat-messages">
                 @if (groupsChats != null && groupsChats.Any())
                 {
 
 
                     @foreach (var user in groupsChats)
                     {
-                        <div class="chat-message">
+                        <div class="chat-message" id="chat-messages">
                             <div class="user-info">
-                                <img src="data:image/png;base64,@Convert.ToBase64String(user.Users.Picture.Name)" alt="User Avatar">
-                                <b>@user.Users.Username</b>
+                                @if(users.Id == user.Users.Id)
+                                {
+                                    <img src="data:image/png;base64,@Convert.ToBase64String(user.Users.Picture.Name)" alt="User Avatar">
+                                    <b>Я</b>
+                                }
+                                else
+                                {
+                                    <img src="data:image/png;base64,@Convert.ToBase64String(user.Users.Picture.Name)" alt="User Avatar">
+                                    <b>@user.Users.Username</b>
+                                }
                             </div>
                             <p>@user.Messages</p>
                         </div>
@@ -183,6 +201,39 @@
         <p><em>Ошибка !!</em></p>
     }
 </div>
+ <script>
+    //  function scrollToBottomWith() {
+    //     // await new Promise(resolve => setTimeout(resolve, 1)); // Ждем 100 миллисекунд
+    //     scrollToBottom();
+    //     scrollToBottoms();
+    //      scrollToBottomss();
+    // }
+
+    function scrollToBottom() {
+        var chatMessages = document.querySelector('.chat-messages');
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        var chatMessages1 = document.querySelector('.page-container');
+        chatMessages1.scrollTop = chatMessages1.scrollHeight;
+        var chatMessages2 = document.querySelector('.chat-container');
+        chatMessages2.scrollTop = chatMessages2.scrollHeight;
+        var chatMessages3 = document.querySelector('.chat-message');
+        chatMessage32.scrollTop = chatMessages3.scrollHeight;
+
+    }
+
+     function scrollToBottomss() {
+       
+
+    } 
+     function scrollToBottoms() 
+     {
+    
+     }
+</script>
+
+
+
+
 @* <script src="call.js"></script>
  *@
 @* <script>
@@ -194,6 +245,8 @@
 
 @code
 {
+
+    public bool Sroll = false;
 
     public string numbers { get; set; }
 
@@ -265,8 +318,16 @@
                     // await LoadData();
                     // update = true;
                     // _= Task.Run(() => Normal());
+                    // Task task = new Task(D =>Normal());
                     _ = Task.Run(() => Normal());
+
                     StateHasChanged();
+
+                    // task.Start()
+
+
+                    // _ = Task.Run(() => Scrollview());
+
 
                 }
 
@@ -309,6 +370,7 @@
     //     }
 
     // }
+    private static SemaphoreSlim semaphore;
 
     public async Task Normal()
     {
@@ -317,7 +379,10 @@
 
             while (true)
             {
+                // semaphore = new SemaphoreSlim(1, 1);
+
                 // await Task.Delay(TimeSpan.FromSeconds(1)); // Ждем 10 секунд перед следующим выполнением
+                // semaphore.Wait(); // Ожидание доступа к ресурсу
 
                 using (httpClient = ClientFactory.CreateClient())
                 {
@@ -332,15 +397,26 @@
                     // Обновление состояния компонента на основе загруженных данных
 
                     await Task.Delay(TimeSpan.FromMilliseconds(1)); // Ждем 10 секунд перед следующим выполнением
-                    await InvokeAsync(() =>
+                    await InvokeAsync(async () =>
                      {
                          // groupsChats = groupsChats;
                          StateHasChanged(); // Перерисовываем компонент после обновления данных
+                         if (Sroll ==true)
+                         {
+                             await JSRuntime.InvokeVoidAsync("scrollToBottom");
+
+                             // await  Scrollview();
+                             // await Scrollview();
+
+                         }
                      });
                 }
 
-                   
-                
+
+
+                // semaphore.Release(); // Освобождение ресурса
+
+
             }
         }
         catch (Exception)
@@ -359,7 +435,7 @@
 
     //             groupsChats = await httpClient.GetFromJsonAsync<List<GroupChatsSelect>>(httpClient.BaseAddress);
     //             // Обновление состояния компонента на основе загруженных данных
-               
+
     //             // Перерисовываем компонент после обновления данных
 
     //             await Task.Delay(TimeSpan.FromSeconds(1)); // Ждем 10 секунд перед следующим выполнением
@@ -388,28 +464,51 @@
                 byte[] bytes = new byte[10];
                 // Files fs = new Files(1, bytes);
                 GroupsChats groupsChat = new GroupsChats { Id = 0, Group = group.Id, Users = users.Id, Messages = Название, Bytes = bytes };
-             
-                    httpClient.BaseAddress = new Uri(urlPOST);
-                    string jsonString = JsonConvert.SerializeObject(groupsChat);
-                    HttpContent content = new StringContent(jsonString, Encoding.UTF8, "application/json");
 
-                    var response = await httpClient.PostAsync(url, content);
-                    // httpClient = ClientFactory.CreateClient();
-                    // httpClient.BaseAddress = new Uri(url + group.Id);
+                httpClient.BaseAddress = new Uri(urlPOST);
+                string jsonString = JsonConvert.SerializeObject(groupsChat);
+                HttpContent content = new StringContent(jsonString, Encoding.UTF8, "application/json");
 
-                    // groupsChats = await httpClient.GetFromJsonAsync<List<APIConnectify.NET.Models.GroupChatsSelect>>(httpClient.BaseAddress);
+                var response = await httpClient.PostAsync(url, content);
+                // httpClient = ClientFactory.CreateClient();
+                // httpClient.BaseAddress = new Uri(url + group.Id);
 
-                    // await Update();
-                    StateHasChanged();
-                }
-              
-            
+                // groupsChats = await httpClient.GetFromJsonAsync<List<APIConnectify.NET.Models.GroupChatsSelect>>(httpClient.BaseAddress);
+                Название = "";
+                // await Update();
+                // StateHasChanged();    
+                Sroll = true;
+
+            }
+
+
         }
         catch (Exception)
         {
 
         }
     }
+
+
+    public async Task Scrollview()
+    {
+        try
+        {
+            while (true)
+            {
+                if (Sroll)
+                {
+                
+                    await JSRuntime.InvokeVoidAsync("scrollToBottom");
+                    Sroll = false;
+                }
+            }
+        }
+    catch (Exception)
+    {
+        // Обработка исключений при необходимости
+    }
+}
 
     // public async Task Update()
     // {
