@@ -56,6 +56,9 @@
         try
         {
             await JSRuntime.InvokeVoidAsync("stopRecordingAndSend", roomId);
+
+            // Добавляем этот вызов, чтобы воспроизвести аудио, когда оно возвращается на клиент
+            // await HubConnection.InvokeAsync("SendAudioToCaller", roomId);
         }
         catch (Exception ex)
         {
@@ -115,7 +118,13 @@
     {
         try
         {
-            await HubConnection.InvokeAsync("StartCall", roomId);
+
+            HubConnection = new HubConnectionBuilder()
+                .WithUrl(NavigationManager.ToAbsoluteUri("/signalr"))
+                .Build();
+            await HubConnection.StartAsync();
+
+            await HubConnection.SendAsync("CreateAudioRoom", roomId);
         }
         catch (Exception ex)
         {
@@ -159,27 +168,33 @@
 <script>
     // Подключение к SignalR Hub
     const connection = new signalR.HubConnectionBuilder()
-        .withUrl("/signalrHub") // Укажите URL вашего SignalR Hub
+        .withUrl("/signalr") // Укажите URL вашего SignalR Hub
         .build();
 
     // Обработчик для получения аудио данных от сервера
-    connection.on("ReceiveAudio", (senderId, audioData) => {
-        // Преобразование массива байт в Blob
-        const blob = new Blob([new Uint8Array(audioData)], { type: 'audio/webm' });
+    connection.on("ReceiveAudio", async (senderId, audioData) => {
+        try {
+            // Преобразование массива байт в Blob
+            const blob = new Blob([new Uint8Array(audioData)], { type: 'audio/webm' });
 
-        // Преобразование Blob в URL для воспроизведения
-        const audioUrl = URL.createObjectURL(blob);
+            // Преобразование Blob в URL для воспроизведения
+            const audioUrl = URL.createObjectURL(blob);
 
-        // Создание нового аудио элемента
-        const audioElement = new Audio(audioUrl);
+            // Создание нового аудио элемента
+            const audioElement = new Audio(audioUrl);
 
-        // Воспроизведение аудио
-        audioElement.play().then(() => {
-            // Удаление URL после окончания воспроизведения
-            URL.revokeObjectURL(audioUrl);
-        }).catch((error) => {
-            console.error('Error playing audio:', error);
-        });
+            // Воспроизведение аудио
+            audioElement.play()
+                .then(() => {
+                    // Удаление URL после окончания воспроизведения
+                    URL.revokeObjectURL(audioUrl);
+                })
+                .catch((error) => {
+                    console.error('Error playing audio:', error);
+                });
+        } catch (error) {
+            console.error('Error receiving audio:', error);
+        }
     });
 
     // Старт подключения к Hub
@@ -192,13 +207,11 @@
         });
 
     // Функция для начала записи аудио
-    let mediaRecorder;
-    let audioChunks = [];
-
-    window.startRecording = async function () {
+    const startRecording = async function ()  {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
+            const mediaRecorder = new MediaRecorder(stream);
+            const audioChunks = [];
 
             mediaRecorder.addEventListener('dataavailable', (event) => {
                 if (event.data.size > 0) {
@@ -207,13 +220,15 @@
             });
 
             mediaRecorder.start();
+            return { mediaRecorder, audioChunks };
         } catch (error) {
             console.error('Error starting recording:', error);
+            return { mediaRecorder: null, audioChunks: [] };
         }
     };
 
     // Функция для остановки записи аудио и отправки на сервер
-    window.stopRecordingAndSend = async function (roomId) {
+    const stopRecordingAndSend = async function (roomId, mediaRecorder, audioChunks)  {
         try {
             if (mediaRecorder && mediaRecorder.state === 'recording') {
                 mediaRecorder.stop();
@@ -228,9 +243,7 @@
                         // Отправка аудио данных на сервер через SignalR
                         await connection.invoke("SendAudio", roomId, audioData);
                     };
-
                     reader.readAsArrayBuffer(audioBlob);
-                    audioChunks = [];
                 });
             }
         } catch (error) {
@@ -239,7 +252,7 @@
     };
 
     // Функция для запуска камеры и просмотра видео
-    window.startCamera = async function (videoElement) {
+    const startCamera = async function  (videoElement)  {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: true });
             videoElement.srcObject = stream;
@@ -251,8 +264,8 @@
         }
     };
 
-    // Функция для остановки камеры
-    window.stopCamera = function (videoElement) {
+    // Функция для остановки камеры или скриншаринга
+    const stopMedia = (videoElement) => {
         const stream = videoElement.srcObject;
         if (stream) {
             const tracks = stream.getTracks();
@@ -262,32 +275,6 @@
             videoElement.srcObject = null;
         }
     };
-
-    // Функция для запуска скриншаринга
-    window.startScreenSharing = async function (videoElement) {
-        try {
-            const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
-            videoElement.srcObject = stream;
-            videoElement.onloadedmetadata = () => {
-                videoElement.play();
-            };
-        } catch (error) {
-            console.error('Error starting screen sharing:', error);
-        }
-    };
-
-    // Функция для остановки скриншаринга
-    window.stopScreenSharing = function (videoElement) {
-        const stream = videoElement.srcObject;
-        if (stream) {
-            const tracks = stream.getTracks();
-            tracks.forEach(track => {
-                track.stop();
-            });
-            videoElement.srcObject = null;
-        }
-    };
-
 </script>
 
 
