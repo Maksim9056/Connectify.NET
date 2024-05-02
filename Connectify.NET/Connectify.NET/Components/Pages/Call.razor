@@ -32,7 +32,9 @@
 </div>
 
 <audio id="audioPlayer" controls style="display: none;"></audio>
-
+@* <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/5.0.6/signalr.min.js"></script>
+ *@
+<script src="~/js/microsoft/signalr/dist/browser/signalr.min.js"></script>
 @code {
     [Parameter]
     public string roomId { get; set; }
