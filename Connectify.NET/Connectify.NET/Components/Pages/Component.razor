@@ -11,6 +11,7 @@
 @inject Friends Friend
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @inject ProtectedLocalStorage ProtectedLocalStore
+
 <style>
     /* styles.css (или другой файл, куда вы помещаете свои стили) */
 
@@ -58,9 +59,11 @@
 
 
     string url = "http://localhost:5000/api/UsersControllers/group";
+    string urlUser = "http://localhost:5000/api/UsersControllers/";
 
     private bool isConnected;
-
+    // await ProtectedLocalStore.SetAsync("password", users.Password);
+    // await ProtectedLocalStore.SetAsync("mail", users.Email);
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         try
@@ -68,13 +71,28 @@
             if (firstRender)
             {
                 isConnected = true;
-                var result = await ProtectedLocalStore.GetAsync<Users>("users");
-                users = result.Success ? result.Value : null;
+                string urls = "http://localhost:5000/api/UsersControllers/GETCheck/";
+
+                var result = await ProtectedLocalStore.GetAsync<int>("usersid");
+                var usersId   = result.Success ? result.Value : 0;
+                var results = await ProtectedLocalStore.GetAsync<string>("password");
+                var password = results.Success ? results.Value : "";
+                var resultss = await ProtectedLocalStore.GetAsync<string>("mail");
+                var mail = resultss.Success ? resultss.Value : "";
+        
+       
+                httpClient = ClientFactory.CreateClient();
+                httpClient.BaseAddress = new Uri(urls + mail + "," + password);
+
+                users = await httpClient.GetFromJsonAsync<Users>(httpClient.BaseAddress);
+
                 StateHasChanged();
             }
         }
         catch (Exception)
         {
+            users = await httpClient.GetFromJsonAsync<Users>(httpClient.BaseAddress);
+            StateHasChanged();
 
         }
     }
@@ -105,12 +123,12 @@
     {
         try
         {
-            ListChatsAl.users = users;
+            // ListChatsAl.users = users;
             httpClient = ClientFactory.CreateClient();
             httpClient.BaseAddress = new Uri(url + users.Id);
             groups = await httpClient.GetFromJsonAsync<List<Group>>(httpClient.BaseAddress);
 
-            ListChatsAl.groups = groups;
+            // ListChatsAl.groups = groups;
 
             NavigationManager.NavigateTo($"/ListChatsAll/");
         }

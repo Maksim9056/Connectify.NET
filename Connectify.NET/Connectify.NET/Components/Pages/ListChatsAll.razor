@@ -7,8 +7,9 @@
 @inject ListChatsAll ListChatsAl
 @inject GroupAdd GroupAd
 @inject GroupChats GroupChat
-@* @using Newtonsoft.Json
- *@
+@using Newtonsoft.Json
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject ProtectedLocalStorage ProtectedLocalStore
 @inject NavigationManager NavigationManager
 <style>
 
@@ -202,16 +203,20 @@
     [Parameter]
 
     public List<Group> groups { get; set; }
+    private bool isConnected;
 
     string url = "http://localhost:5000/api/GroupsControllers";
-
+    string urlUser = "http://localhost:5000/api/UsersControllers/";
     HttpClient httpClient = null!;
+    string urlGroup = "http://localhost:5000/api/UsersControllers/group";
+    // string urlUser = "https://localhost:7086/api/UsersControllers/";
+
     private void IncrementCount()
     {
         try
         {
 
-            GroupAd.users = users;
+            // GroupAd.users = users;
             NavigationManager.NavigateTo($"/GroupAdd/");
         }
         catch (Exception ex)
@@ -221,47 +226,87 @@
         }
     }
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         try
         {
-            if (users == null)
+            if (firstRender)
             {
-                if (ListChatsAl == null)
-                {
+                isConnected = true;
+                string urls = "http://localhost:5000/api/UsersControllers/GETCheck/";
 
-                }
-                else
-                {
-                    users = ListChatsAl.users;
-                    groups = ListChatsAl.groups;
+                var result = await ProtectedLocalStore.GetAsync<int>("usersid");
+                var usersId = result.Success ? result.Value : 0;
+                var results = await ProtectedLocalStore.GetAsync<string>("password");
+                var password = results.Success ? results.Value : "";
+                var resultss = await ProtectedLocalStore.GetAsync<string>("mail");
+                var mail = resultss.Success ? resultss.Value : "";
 
-                }
-            }
-            httpClient = ClientFactory.CreateClient();
-            httpClient.BaseAddress = new Uri(url);
-            if (users == null)
-            {
 
-            }
-            else
-            {
+                httpClient = ClientFactory.CreateClient();
+                httpClient.BaseAddress = new Uri(urls + mail + "," + password);
+
+                users = await httpClient.GetFromJsonAsync<Users>(httpClient.BaseAddress);
+
+      
+                httpClient = ClientFactory.CreateClient();
+                httpClient.BaseAddress = new Uri(urlGroup + users.Id);
+                groups = await httpClient.GetFromJsonAsync<List<Group>>(httpClient.BaseAddress);
                 await LoadData();
-                StateHasChanged();
 
+                StateHasChanged();
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            // Handle exception
-            Console.WriteLine("An error occurred: " + ex.Message);
+
         }
     }
 
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     try
+    //     {
+    //         if (users == null)
+    //         {
+    //             if (ListChatsAl == null)
+    //             {
+
+    //             }
+    //             else
+    //             {
+    //                 users = ListChatsAl.users;
+    //                 groups = ListChatsAl.groups;
+
+    //             }
+    //         }
+    //         httpClient = ClientFactory.CreateClient();
+    //         httpClient.BaseAddress = new Uri(url);
+    //         if (users == null)
+    //         {
+
+    //         }
+    //         else
+    //         {
+    //             await LoadData();
+    //             StateHasChanged();
+
+    //         }
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         // Handle exception
+    //         Console.WriteLine("An error occurred: " + ex.Message);
+    //     }
+    // }
+
+
+    //Обновления Пользователя по 
     async Task LoadData()
     {
         try
-        {
+        {           
+            httpClient.BaseAddress = new Uri(urlUser);
             var us = await httpClient.GetFromJsonAsync<Users>(httpClient.BaseAddress);
             if (us == null)
             {
@@ -270,6 +315,8 @@
             else
             {
                 users = us;
+                await ProtectedLocalStore.SetAsync("usersid", users.Id);
+
             }
         }
         catch (Exception)
@@ -279,12 +326,13 @@
     }
 
 
-    void OpenGroupChat(Group groupId)
+    async Task OpenGroupChat(Group groupId)
     {
         try
         {
             GroupChat.users = users;
             GroupChat.group = groupId;
+            await ProtectedLocalStore.SetAsync("groupid", groupId.Id);
 
             NavigationManager.NavigateTo($"/GroupChat/");
         }

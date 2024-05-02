@@ -15,6 +15,8 @@
 @using System.Net.Sockets
 @using System.Collections.Concurrent
 @using System.Net
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject ProtectedLocalStorage ProtectedLocalStore
 <style>
     .page-container {
         display: flex;
@@ -278,61 +280,99 @@
     }
 
     bool update = false;
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         try
         {
-            if (GroupChat == null)
+            if (firstRender)
             {
+                string urls = "http://localhost:5000/api/UsersControllers/GETCheck/";
 
-            }
-            else
-            {
+                var result = await ProtectedLocalStore.GetAsync<int>("usersid");
+                var usersId = result.Success ? result.Value : 0;
+                var results = await ProtectedLocalStore.GetAsync<string>("password");
+                var password = results.Success ? results.Value : "";
+                var resultss = await ProtectedLocalStore.GetAsync<string>("mail");
+                var mail = resultss.Success ? resultss.Value : "";
+
 
                 httpClient = ClientFactory.CreateClient();
+                httpClient.BaseAddress = new Uri(urls + mail + "," + password);
 
+                users = await httpClient.GetFromJsonAsync<Users>(httpClient.BaseAddress);
+                var resultsss = await ProtectedLocalStore.GetAsync<int>("groupid");
+                var groupid = resultsss.Success ? resultsss.Value : 0;
 
-                users = GroupChat.users;
-                group = GroupChat.group;
-                if (group == null)
-                {
+                group = new Group();
+                httpClient = ClientFactory.CreateClient();
+                httpClient.BaseAddress = new Uri(url + groupid);
+                group.Id = groupid;
+                _ = Task.Run(() => Normal());
+                StateHasChanged();
 
-                }
-                else
-                {
-
-                    // httpClient.BaseAddress = new Uri(url + group.Id);
-                    // await LoadData();
-                    // update = true;
-                    // _= Task.Run(() => Normal());
-                    // Task task = new Task(D =>Normal());
-                    _ = Task.Run(() => Normal());
-
-                    StateHasChanged();
-
-                    // task.Start()
-
-
-                    // _ = Task.Run(() => Scrollview());
-
-
-                }
 
             }
-
-            if (update == true)
-            {
-                // await OnAfterRenderAsync(update);
-
-            }
-
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            // Handle exception
-            Console.WriteLine("An error occurred: " + ex.Message);
+
         }
     }
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     try
+    //     {
+    //         if (GroupChat == null)
+    //         {
+
+    //         }
+    //         else
+    //         {
+
+    //             httpClient = ClientFactory.CreateClient();
+
+
+    //             users = GroupChat.users;
+    //             group = GroupChat.group;
+    //             if (group == null)
+    //             {
+
+    //             }
+    //             else
+    //             {
+
+    //                 // httpClient.BaseAddress = new Uri(url + group.Id);
+    //                 // await LoadData();
+    //                 // update = true;
+    //                 // _= Task.Run(() => Normal());
+    //                 // Task task = new Task(D =>Normal());
+    //                 _ = Task.Run(() => Normal());
+
+    //                 StateHasChanged();
+
+    //                 // task.Start()
+
+
+    //                 // _ = Task.Run(() => Scrollview());
+
+
+    //             }
+
+    //         }
+
+    //         if (update == true)
+    //         {
+    //             // await OnAfterRenderAsync(update);
+
+    //         }
+
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         // Handle exception
+    //         Console.WriteLine("An error occurred: " + ex.Message);
+    //     }
+    // }
     private static SemaphoreSlim semaphore;
 
     public async Task Normal()
@@ -389,7 +429,7 @@
 
                          }
                          groupsChat = groupsChats;
-                        
+
                      });
                 }
 
@@ -406,7 +446,7 @@
         }
     }
 
- 
+
 
     private async Task SubmitForm()
     {
@@ -427,7 +467,7 @@
                 var response = await httpClient.PostAsync(url, content);
                 // httpClient = ClientFactory.CreateClient();
                 // httpClient.BaseAddress = new Uri(url + group.Id);
-
+                Scrollview();
                 // groupsChats = await httpClient.GetFromJsonAsync<List<APIConnectify.NET.Models.GroupChatsSelect>>(httpClient.BaseAddress);
                 Название = "";
                 // await Update();

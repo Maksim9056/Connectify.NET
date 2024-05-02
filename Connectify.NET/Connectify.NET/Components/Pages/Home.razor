@@ -84,6 +84,7 @@
 
         }
     }
+
     async Task LoadData()
     {
         try
@@ -99,7 +100,10 @@
             {
 
                  // userStateService.users = users;
-                await ProtectedLocalStore.SetAsync("users", users);
+                await ProtectedLocalStore.SetAsync("usersid", users.Id);
+                await ProtectedLocalStore.SetAsync("password", users.Password);
+                await ProtectedLocalStore.SetAsync("mail", users.Email);
+
                 NavigationManager.NavigateTo($"/UserUse");
             }
 
