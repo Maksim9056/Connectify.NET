@@ -6,8 +6,8 @@
 @inject IHttpClientFactory ClientFactory
 @inject NavigationManager NavigationManager
 @inject Component userStateService
-@*  @inject Component UserService
- *@
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject ProtectedLocalStorage ProtectedLocalStore
 <h1>Авторизация</h1>
 
 
@@ -98,7 +98,8 @@
             else
             {
 
-                 userStateService.users = users;
+                 // userStateService.users = users;
+                await ProtectedLocalStore.SetAsync("users", users);
                 NavigationManager.NavigateTo($"/UserUse");
             }
 
